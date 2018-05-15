@@ -39,7 +39,7 @@ public class RegenerationManager implements Listener {
     String minedOreName = "";
     public int respawnDelay;
     
-	@EventHandler(priority= EventPriority.HIGH)
+	@EventHandler(priority= EventPriority.LOWEST)
     public void onBlockBreak(BlockBreakEvent event) {
         Player p = event.getPlayer();
         Block brokenBlock = event.getBlock();
