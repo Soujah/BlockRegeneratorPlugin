@@ -1,0 +1,4 @@
+name: BlockRegenerator
+version: 1.0
+main: me.joshuaemq.blockRegenerator.BlockRegenerator
+description: RegenerateBlocks!
