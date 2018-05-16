@@ -70,31 +70,38 @@ public class RegenerationManager implements Listener {
                 	
                 	String possibleRewardName = rewardz;
                     int possibleRewardWeight = plugin.getLootTable().getInt(regionName + "." + brokenBlockMaterial.toString() + ".rewards." + rewardz);
-                    p.sendMessage("String: " + rewardz);
-                    p.sendMessage("Weight: " + possibleRewardWeight);
+                    //p.sendMessage("String: " + rewardz);
+                    //p.sendMessage("Weight: " + possibleRewardWeight);
                 	lootSelectorMap.put(possibleRewardName, possibleRewardWeight);
                 }
                 minedOreName = brokenBlockMaterial.toString();
-                p.sendMessage("map: " + lootSelectorMap);
+                //p.sendMessage("map: " + lootSelectorMap);
                 int weightTotal = 0;
                 for (int rewardWeight : lootSelectorMap.values()) {
                     weightTotal += rewardWeight;
                 }
-                p.sendMessage("TOTAL WEIGHT: " + weightTotal);
+                //p.sendMessage("TOTAL WEIGHT: " + weightTotal);
 
                 String reward = "";
                 Random randomNumber = new Random();
-                double randomizer = randomNumber.nextDouble() * weightTotal;
-                for (String rewardSelector : lootSelectorMap.keySet()) {
-                    randomizer -= lootSelectorMap.get(rewardSelector);
-                    p.sendMessage("RANDOMIZER: " + randomizer);
-                    if (randomizer <= 0) {
-                        reward = rewardSelector;
+
+                double randomizer = randomNumber.nextDouble() * weightTotal + Math.random();
+                p.sendMessage("" + randomizer);
+                while (randomizer > 0) {
+                	for (String rewardSelector : lootSelectorMap.keySet()) {
+                    	p.sendMessage("reward sel: " + rewardSelector);
+                        randomizer -= lootSelectorMap.get(rewardSelector);
+                        if (randomizer < 0) {
+                        	p.sendMessage("IF STATEMENT: " + randomizer);
+                            reward = rewardSelector;
+                            break;
+                        }
                     }
                 }
                 
+                
                 p.sendMessage("REWARD CHOSEN: " + reward);
-                p.sendMessage("MAT " + plugin.getLootItems().getString(reward + ".material"));
+                //p.sendMessage("MAT " + plugin.getLootItems().getString(reward + ".material"));
                 Material rewardMaterial = Material.matchMaterial(plugin.getLootItems().getString(reward + ".material"));
                 ItemStack minedReward = new ItemStack(rewardMaterial, 1); //makes new item stack for mined reward
                 ItemMeta meta = minedReward.getItemMeta();
@@ -112,7 +119,7 @@ public class RegenerationManager implements Listener {
                 }
                 meta.setLore(loreList);
                 minedReward.setItemMeta(meta);
-                p.sendMessage(loreList.toString());
+                //p.sendMessage(loreList.toString());
                 //give player xp
                 
                 //give item to player
@@ -120,6 +127,8 @@ public class RegenerationManager implements Listener {
                 p.sendMessage(ChatColor.RED + "reward given");
                 //clear map
                 lootSelectorMap.clear();
+                
+                
                 //add to SQL: ore type broken, location and world, respawn delay
                 respawnDelay = plugin.getLootTable().getInt(regionName + "." + minedOreName + ".respawn"); //sets respawn delay for that ore
                 

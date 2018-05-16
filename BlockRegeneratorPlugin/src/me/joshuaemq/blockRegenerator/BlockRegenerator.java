@@ -51,6 +51,8 @@ public class BlockRegenerator extends JavaPlugin {
         oresList.add(Material.LAPIS_ORE);
         oresList.add(Material.EMERALD_ORE);
         oresList.add(Material.REDSTONE_ORE);
+        oresList.add(Material.COAL_ORE);
+        oresList.add(Material.QUARTZ_ORE);
 
         Bukkit.getServer().getLogger().info("Block Regenerator by Joshuaemq: Enabled!");
     }
