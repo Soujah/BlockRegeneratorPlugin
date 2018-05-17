@@ -1,9 +1,9 @@
 package me.joshuaemq.blockRegenerator;
 
-import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
-import me.joshuaemq.blockRegenerator.RegenerationManager;
-import me.joshuaemq.blockRegenerator.RespawnTask;
-
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -12,15 +12,13 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 
 public class BlockRegenerator extends JavaPlugin {
 
 
     WorldGuardPlugin worldGuardPlugin;
+    SQLlib sqlLibPlugin;
     RegenerationManager regenManager;
     
     private RespawnTask respawnTask;
@@ -39,6 +37,7 @@ public class BlockRegenerator extends JavaPlugin {
 
     public void onEnable() {
         worldGuardPlugin = (WorldGuardPlugin) getServer().getPluginManager().getPlugin("WorldGuard");
+        sqlLibPlugin = (SQLlib) getServer().getPluginManager().getPlugin("SQLlib");
         Bukkit.getPluginManager().registerEvents(new RegenerationManager(this), this);
         regenManager = new RegenerationManager(this);
         respawnTask = new RespawnTask(this);
@@ -46,10 +45,7 @@ public class BlockRegenerator extends JavaPlugin {
                 250 * 20L, // 4m10s delay: 250 * 20L,
                 300 * 20L // 5m repeat period: 300 * 20L
         );
-        
-        
-        //calls method to load orelootmanager stuff
-        
+                
         getConfig().options().copyDefaults(true);
         saveConfig();
         reloadConfig();
@@ -84,7 +80,11 @@ public class BlockRegenerator extends JavaPlugin {
     public WorldGuardPlugin getWorldGuard() {
         return worldGuardPlugin;
     }
-
+    
+    public SQLlib getSQLlib() {
+    	return sqlLibPlugin;
+    }
+    
     private FileConfiguration lootTableData = YamlConfiguration.loadConfiguration(new File(getDataFolder() + "/data", "lootTable.yml"));
     private FileConfiguration lootItemsData = YamlConfiguration.loadConfiguration(new File(getDataFolder() + "/data", "lootItems.yml"));
 

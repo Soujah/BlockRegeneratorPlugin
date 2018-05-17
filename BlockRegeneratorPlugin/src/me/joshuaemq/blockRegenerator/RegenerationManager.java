@@ -1,5 +1,6 @@
 package me.joshuaemq.blockRegenerator;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -130,7 +131,7 @@ public class RegenerationManager implements Listener {
                                 
                 //set broken block to bedrock
                 
-                //information for sql entry:
+                //information as a new sql entry:
                 //blocktype
                 Material brokenBlockType = brokenBlock.getType();
                 //block location/world
@@ -138,10 +139,16 @@ public class RegenerationManager implements Listener {
                 //block respawn timer
                 int respawnDelay = plugin.getLootTable().getInt(regionName + "." + minedOreName + ".respawn"); //sets respawn delay for that ore
                 
+                Timestamp time = null; //GET TIME BLOCK IS BROKEN
+				int timeInt = time.getMinutes();
+                int respawnTime = respawnDelay + timeInt;
                 
-                //set block to bedrock
+                //get TimeStamp for when the block was broken
+                //add respawnDelay to timestamp for time the block should respawn 
+                
+                
+                //set broken block to bedrock
                 brokenBlock.setType(plugin.getDepletedOre());
-                
                 
             }
         }
