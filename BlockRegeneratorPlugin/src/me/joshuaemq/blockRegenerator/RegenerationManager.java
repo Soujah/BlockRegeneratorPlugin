@@ -7,6 +7,7 @@ import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -37,7 +38,6 @@ public class RegenerationManager implements Listener {
 
     HashMap<String, Integer> lootSelectorMap = new HashMap<String, Integer>();
     String minedOreName = "";
-    public int respawnDelay;
     
 	@EventHandler(priority= EventPriority.LOWEST)
     public void onBlockBreak(BlockBreakEvent event) {
@@ -127,20 +127,22 @@ public class RegenerationManager implements Listener {
                 p.sendMessage(ChatColor.RED + "reward given");
                 //clear map
                 lootSelectorMap.clear();
-                
-                
-                //add to SQL: ore type broken, location and world, respawn delay
-                respawnDelay = plugin.getLootTable().getInt(regionName + "." + minedOreName + ".respawn"); //sets respawn delay for that ore
-                
+                                
                 //set broken block to bedrock
+                
+                //information for sql entry:
+                //blocktype
+                Material brokenBlockType = brokenBlock.getType();
+                //block location/world
+                Location brokenBlockLocation = brokenBlock.getLocation();
+                //block respawn timer
+                int respawnDelay = plugin.getLootTable().getInt(regionName + "." + minedOreName + ".respawn"); //sets respawn delay for that ore
+                
+                
+                //set block to bedrock
                 brokenBlock.setType(plugin.getDepletedOre());
-
-                Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-                    public void run() {
-                        Material minedOreBlock = Material.matchMaterial(minedOreName);
-                        brokenBlock.setType(minedOreBlock);
-                    }
-                }, respawnDelay); //delay will be from delay variable above
+                
+                
             }
         }
     }	

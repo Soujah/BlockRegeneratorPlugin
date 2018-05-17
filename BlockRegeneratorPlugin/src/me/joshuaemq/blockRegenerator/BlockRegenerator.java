@@ -2,6 +2,9 @@ package me.joshuaemq.blockRegenerator;
 
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import me.joshuaemq.blockRegenerator.RegenerationManager;
+import me.joshuaemq.blockRegenerator.RespawnTask;
+
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -19,7 +22,9 @@ public class BlockRegenerator extends JavaPlugin {
 
     WorldGuardPlugin worldGuardPlugin;
     RegenerationManager regenManager;
-
+    
+    private RespawnTask respawnTask;
+    
     List<Material> oresList = new ArrayList<Material>();
 
     public List<Material> getOresList() {
@@ -36,6 +41,13 @@ public class BlockRegenerator extends JavaPlugin {
         worldGuardPlugin = (WorldGuardPlugin) getServer().getPluginManager().getPlugin("WorldGuard");
         Bukkit.getPluginManager().registerEvents(new RegenerationManager(this), this);
         regenManager = new RegenerationManager(this);
+        respawnTask = new RespawnTask(this);
+        respawnTask.runTaskTimer(this,
+                250 * 20L, // 4m10s delay: 250 * 20L,
+                300 * 20L // 5m repeat period: 300 * 20L
+        );
+        
+        
         //calls method to load orelootmanager stuff
         
         getConfig().options().copyDefaults(true);
@@ -59,7 +71,10 @@ public class BlockRegenerator extends JavaPlugin {
 
     public void onDisable() {
     	//regenerate all blocks
+    	respawnTask.run();
+        respawnTask.cancel();
         HandlerList.unregisterAll();
+        respawnTask = null;
         worldGuardPlugin = null;
         regenManager = null;
         Bukkit.getServer().getLogger().info("Block Regenerator by Joshuaemq: Disabled!");
