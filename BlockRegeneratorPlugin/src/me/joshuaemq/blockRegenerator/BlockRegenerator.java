@@ -11,18 +11,18 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitScheduler;
 
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+
+import SQLManager.SQLManager;
 
 public class BlockRegenerator extends JavaPlugin {
 
 
     WorldGuardPlugin worldGuardPlugin;
-    SQLlib sqlLibPlugin;
     RegenerationManager regenManager;
-    
-    private RespawnTask respawnTask;
-    
+        
     List<Material> oresList = new ArrayList<Material>();
 
     public List<Material> getOresList() {
@@ -34,18 +34,15 @@ public class BlockRegenerator extends JavaPlugin {
     public Material getDepletedOre() {
         return depletedOre;
     }
+    public final SQLManager sql = new SQLManager(this);
 
     public void onEnable() {
         worldGuardPlugin = (WorldGuardPlugin) getServer().getPluginManager().getPlugin("WorldGuard");
-        sqlLibPlugin = (SQLlib) getServer().getPluginManager().getPlugin("SQLlib");
         Bukkit.getPluginManager().registerEvents(new RegenerationManager(this), this);
-        regenManager = new RegenerationManager(this);
-        respawnTask = new RespawnTask(this);
-        respawnTask.runTaskTimer(this,
-                250 * 20L, // 4m10s delay: 250 * 20L,
-                300 * 20L // 5m repeat period: 300 * 20L
-        );
-                
+        
+        sql.initDatabase();
+        startCheck();
+                        
         getConfig().options().copyDefaults(true);
         saveConfig();
         reloadConfig();
@@ -64,13 +61,19 @@ public class BlockRegenerator extends JavaPlugin {
 
         Bukkit.getServer().getLogger().info("Block Regenerator by Joshuaemq: Enabled!");
     }
-
+    
+    private void startCheck(){
+        BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+        scheduler.scheduleSyncRepeatingTask(this, new Runnable() {
+            @Override
+            public void run() {
+               sql.check();
+            }
+        }, 0L, 4*20L);
+    }
+    
     public void onDisable() {
-    	//regenerate all blocks
-    	respawnTask.run();
-        respawnTask.cancel();
         HandlerList.unregisterAll();
-        respawnTask = null;
         worldGuardPlugin = null;
         regenManager = null;
         Bukkit.getServer().getLogger().info("Block Regenerator by Joshuaemq: Disabled!");
@@ -81,9 +84,7 @@ public class BlockRegenerator extends JavaPlugin {
         return worldGuardPlugin;
     }
     
-    public SQLlib getSQLlib() {
-    	return sqlLibPlugin;
-    }
+    
     
     private FileConfiguration lootTableData = YamlConfiguration.loadConfiguration(new File(getDataFolder() + "/data", "lootTable.yml"));
     private FileConfiguration lootItemsData = YamlConfiguration.loadConfiguration(new File(getDataFolder() + "/data", "lootItems.yml"));

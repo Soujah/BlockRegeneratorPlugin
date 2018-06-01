@@ -1,6 +1,5 @@
 package me.joshuaemq.blockRegenerator;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,7 +45,7 @@ public class RegenerationManager implements Listener {
         Block brokenBlock = event.getBlock();
         String regionName = "";
         Material brokenBlockMaterial = event.getBlock().getType();
-
+        p.sendMessage("block broken!");
         Boolean playerCanBuild = plugin.getWorldGuard().canBuild(p, p.getLocation());
         if (playerCanBuild == false) {
         	event.setCancelled(true);
@@ -62,7 +61,7 @@ public class RegenerationManager implements Listener {
                 		regionName = regions.getId().toString();
                 	}
                 }
-                
+                p.sendMessage(regionName);
                 
                 //select drop from lootTable.yml
                 //create that drop from lootItems.yml
@@ -138,14 +137,13 @@ public class RegenerationManager implements Listener {
                 Location brokenBlockLocation = brokenBlock.getLocation();
                 //block respawn timer
                 int respawnDelay = plugin.getLootTable().getInt(regionName + "." + minedOreName + ".respawn"); //sets respawn delay for that ore
+                int x = (int) brokenBlockLocation.getX();
+                int y = (int) brokenBlockLocation.getY();
+                int z = (int) brokenBlockLocation.getZ();
                 
-                Timestamp time = null; //GET TIME BLOCK IS BROKEN
-				int timeInt = time.getMinutes();
-                int respawnTime = respawnDelay + timeInt;
+                long currentTime = System.currentTimeMillis();
                 
-                //get TimeStamp for when the block was broken
-                //add respawnDelay to timestamp for time the block should respawn 
-                
+                plugin.sql.insertBlock(brokenBlockType.toString(), x, y, z, brokenBlock.getWorld().getName().toString(), currentTime + respawnDelay);
                 
                 //set broken block to bedrock
                 brokenBlock.setType(plugin.getDepletedOre());
