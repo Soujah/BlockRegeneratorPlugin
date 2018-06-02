@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/BlockRegeneratorPlugin.iml" filepath="$PROJECT_DIR$/.idea/BlockRegeneratorPlugin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/BlockRegeneratorPlugin/BlockRegenerator.iml" filepath="$PROJECT_DIR$/BlockRegeneratorPlugin/BlockRegenerator.iml" />
     </modules>
   </component>
 </project>
