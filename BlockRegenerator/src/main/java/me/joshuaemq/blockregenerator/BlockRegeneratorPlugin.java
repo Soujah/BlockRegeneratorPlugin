@@ -3,14 +3,19 @@ package me.joshuaemq.blockregenerator;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import me.joshuaemq.blockregenerator.listeners.BlockBreakListener;
+import me.joshuaemq.blockregenerator.managers.BlockManager;
 import me.joshuaemq.blockregenerator.managers.MineRewardManager;
 import me.joshuaemq.blockregenerator.managers.SQLManager;
+import me.joshuaemq.blockregenerator.objects.BlockData;
 import me.joshuaemq.blockregenerator.objects.MineReward;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Item;
@@ -26,6 +31,7 @@ public class BlockRegeneratorPlugin extends JavaPlugin {
 
   private WorldGuardPlugin worldGuardPlugin;
   private MineRewardManager mineRewardManager;
+  private BlockManager blockManager;
   private SQLManager sqlManager;
 
   private FileConfiguration lootTableData;
@@ -135,12 +141,43 @@ public class BlockRegeneratorPlugin extends JavaPlugin {
     }
   }
 
+
+  private void loadBlocks() {
+
+      List<String> setRegions = lootTableData.getStringList("");
+
+      for (String region : setRegions) {
+
+          String oreType = lootTableData.getString(region);
+          int oreRespawn = lootTableData.getInt(region + oreType + ".respawn");
+          double exhaust = lootTableData.getInt(region + oreType + ".exhaust-chance");
+          List<String> regionRewards = lootTableData.getStringList(region + ".rewards");
+
+          for (String rewardName : regionRewards) {
+
+              int weight = lootTableData.getInt(region + ".rewards" + rewardName);
+
+              //add to blockmanager
+              BlockData blockData = new BlockData(oreType, exhaust, oreRespawn, REWARDSandWEIGHT);
+              blockManager.addBlock(region, blockData);
+
+          }
+
+      }
+
+
+  }
+
   public SQLManager getSQLManager() {
     return sqlManager;
   }
 
   public MineRewardManager getMineRewardManager() {
     return mineRewardManager;
+  }
+
+  public BlockManager getBlockManager() {
+      return blockManager;
   }
 
 }
