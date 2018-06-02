@@ -46,7 +46,6 @@ public class BlockBreakListener implements Listener {
     ProtectedRegion region = null;
     Material blockMaterial = event.getBlock().getType();
 
-    player.sendMessage("block broken!");
 
     if (plugin.getOresList().contains(event.getBlock().getType())) {
 
@@ -67,7 +66,7 @@ public class BlockBreakListener implements Listener {
         return;
       }
 
-      player.sendMessage(region.getId());
+      //player.sendMessage(region.getId());
 
       //select drop from lootTable.yml
       //create that drop from lootItems.yml
@@ -93,20 +92,20 @@ public class BlockBreakListener implements Listener {
       Random randomNumber = new Random();
 
       double randomizer = randomNumber.nextDouble() * weightTotal + Math.random();
-      player.sendMessage("" + randomizer);
+      //player.sendMessage("" + randomizer);
       while (randomizer > 0) {
         for (String rewardSelector : lootSelectorMap.keySet()) {
-          player.sendMessage("reward sel: " + rewardSelector);
+          //player.sendMessage("reward sel: " + rewardSelector);
           randomizer -= lootSelectorMap.get(rewardSelector);
           if (randomizer < 0) {
-            player.sendMessage("IF STATEMENT: " + randomizer);
+            //player.sendMessage("IF STATEMENT: " + randomizer);
             reward = rewardSelector;
             break;
           }
         }
       }
 
-      player.sendMessage("REWARD CHOSEN: " + reward);
+      //player.sendMessage("REWARD CHOSEN: " + reward);
       //p.sendMessage("MAT " + plugin.getLootItems().getString(reward + ".material"));
       Material rewardMaterial = Material.matchMaterial(plugin.getLootItems().getString(reward + ".material"));
       ItemStack minedReward = new ItemStack(rewardMaterial, 1); //makes new item stack for mined reward
@@ -117,7 +116,7 @@ public class BlockBreakListener implements Listener {
 
       List<String> loreList = new ArrayList<String>();
 
-      int levelRequirement = plugin.getLootItems().getInt(reward + ".level"); //sets item level requirement
+      int levelRequirement = plugin.getLootItems().getInt(reward + ".level-requirement"); //sets item level requirement
       loreList.add(ChatColor.WHITE + "Item Level: " + levelRequirement);
 
       for (String lore : plugin.getLootItems().getConfigurationSection(reward)
@@ -131,7 +130,7 @@ public class BlockBreakListener implements Listener {
 
       //give item to player
       Bukkit.getWorld(player.getLocation().getWorld().getName()).dropItemNaturally(player.getLocation(), minedReward);
-      player.sendMessage(ChatColor.RED + "reward given");
+      //player.sendMessage(ChatColor.RED + "reward given");
       //clear map
       lootSelectorMap.clear();
 
