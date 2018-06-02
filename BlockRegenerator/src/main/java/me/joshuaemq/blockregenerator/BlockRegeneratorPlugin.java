@@ -6,12 +6,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.joshuaemq.blockregenerator.listeners.BlockBreakListener;
+import me.joshuaemq.blockregenerator.managers.MineRewardManager;
 import me.joshuaemq.blockregenerator.managers.SQLManager;
+import me.joshuaemq.blockregenerator.objects.MineReward;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Item;
 import org.bukkit.event.HandlerList;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
@@ -20,22 +25,19 @@ import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 public class BlockRegeneratorPlugin extends JavaPlugin {
 
   private WorldGuardPlugin worldGuardPlugin;
+  private MineRewardManager mineRewardManager;
   private SQLManager sqlManager;
 
-  List<Material> oresList = new ArrayList<>();
-
-  public List<Material> getOresList() {
-    return oresList;
-  }
-
-  private Material depletedOre = Material.BEDROCK;
-
-  public Material getDepletedOre() {
-    return depletedOre;
-  }
+  private FileConfiguration lootTableData;
+  private FileConfiguration lootItemsData;
 
   public void onEnable() {
     worldGuardPlugin = (WorldGuardPlugin) getServer().getPluginManager().getPlugin("WorldGuard");
+
+    lootTableData = YamlConfiguration
+            .loadConfiguration(new File(getDataFolder(), "blocks.yml"));
+    lootItemsData = YamlConfiguration
+            .loadConfiguration(new File(getDataFolder(), "items.yml"));
 
     Bukkit.getPluginManager().registerEvents(new BlockBreakListener(this), this);
 
@@ -47,17 +49,11 @@ public class BlockRegeneratorPlugin extends JavaPlugin {
     saveConfig();
     reloadConfig();
 
-    lootTable();
-    lootItems();
+    buildConfig("items.yml");
+    buildConfig("blocks.yml");
     saveConfig();
-    oresList.add(Material.IRON_ORE);
-    oresList.add(Material.DIAMOND_ORE);
-    oresList.add(Material.GOLD_ORE);
-    oresList.add(Material.LAPIS_ORE);
-    oresList.add(Material.EMERALD_ORE);
-    oresList.add(Material.REDSTONE_ORE);
-    oresList.add(Material.COAL_ORE);
-    oresList.add(Material.QUARTZ_ORE);
+
+    loadItems();
 
     Bukkit.getServer().getLogger().info("Block Regenerator by Joshuaemq: Enabled!");
   }
@@ -74,19 +70,16 @@ public class BlockRegeneratorPlugin extends JavaPlugin {
 
   public void onDisable() {
     HandlerList.unregisterAll();
+
     worldGuardPlugin = null;
     sqlManager = null;
+
     Bukkit.getServer().getLogger().info("Block Regenerator by Joshuaemq: Disabled!");
   }
 
   public WorldGuardPlugin getWorldGuard() {
     return worldGuardPlugin;
   }
-
-  private FileConfiguration lootTableData = YamlConfiguration
-      .loadConfiguration(new File(getDataFolder() + "/data", "lootTable.yml"));
-  private FileConfiguration lootItemsData = YamlConfiguration
-      .loadConfiguration(new File(getDataFolder() + "/data", "lootItems.yml"));
 
   public FileConfiguration getLootTable() {
     return lootTableData;
@@ -96,45 +89,58 @@ public class BlockRegeneratorPlugin extends JavaPlugin {
     return lootItemsData;
   }
 
-  public void lootTable() { //creates data config for loot to be made
-    File lootTableData = new File(getDataFolder() + "/data", "lootTable.yml");
+  private void buildConfig(String fileName) { //creates data config for loot to be made
+    File file = new File(getDataFolder(), fileName);
 
-    if (!lootTableData.exists()) {
-      try {
-        lootTableData.createNewFile();
-      } catch (IOException e1) {
-        e1.printStackTrace();
-      }
-      FileConfiguration lootConfig = YamlConfiguration.loadConfiguration(lootTableData);
-
-      try {
-        lootConfig.save(lootTableData);
-      } catch (IOException e1) {
-        e1.printStackTrace();
-      }
+    if (file.exists()) {
+      return;
+    }
+    try {
+      file.createNewFile();
+    } catch (IOException e1) {
+      e1.printStackTrace();
+    }
+    FileConfiguration configuration = YamlConfiguration.loadConfiguration(file);
+    try {
+      configuration.save(file);
+    } catch (IOException e1) {
+      e1.printStackTrace();
     }
   }
 
-  public void lootItems() { //creates data config for loot to be made
-    File lootItemsData = new File(getDataFolder() + "/data", "lootItems.yml");
-
-    if (!lootItemsData.exists()) {
+  private void loadItems() {
+    List<String> lootItems = lootItemsData.getStringList("");
+    for (String id : lootItems) {
+      Material material;
       try {
-        lootItemsData.createNewFile();
-      } catch (IOException e1) {
-        e1.printStackTrace();
+        material = Material.valueOf(lootItemsData.getString(id + ".material"));
+      } catch (Exception e) {
+        getLogger().severe("Invalid material name! Failed to load!");
+        continue;
       }
-      FileConfiguration lootConfig = YamlConfiguration.loadConfiguration(lootItemsData);
+      String name = lootItemsData.getString(id + ".display-name", "Item");
+      List<String> lore = lootItemsData.getStringList(id + ".lore");
+      ItemStack itemStack = new ItemStack(material);
+      ItemMeta meta = itemStack.getItemMeta();
+      meta.setDisplayName(name);
+      meta.setLore(lore);
+      itemStack.setItemMeta(meta);
 
-      try {
-        lootConfig.save(lootItemsData);
-      } catch (IOException e1) {
-        e1.printStackTrace();
-      }
+      int levelRequirement = lootItemsData.getInt(id + ".level-requirement", 0);
+      float experience = (float) lootItemsData.getDouble(id + ".experience", 0);
+
+      MineReward mineReward = new MineReward(itemStack, experience, levelRequirement);
+
+      mineRewardManager.addReward(id, mineReward);
     }
   }
 
   public SQLManager getSQLManager() {
     return sqlManager;
   }
+
+  public MineRewardManager getMineRewardManager() {
+    return mineRewardManager;
+  }
+
 }
