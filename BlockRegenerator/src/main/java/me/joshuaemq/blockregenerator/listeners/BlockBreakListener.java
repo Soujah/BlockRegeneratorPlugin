@@ -32,7 +32,7 @@ public class BlockBreakListener implements Listener {
     Material blockMaterial = event.getBlock().getType();
 
 
-    if (plugin.getOresList().contains(blockMaterial)) {
+    if (blockMaterial.toString().contains("_ORE")) {
       event.setCancelled(true);
 
       ApplicableRegionSet regionSet =
@@ -50,7 +50,7 @@ public class BlockBreakListener implements Listener {
         return;
       }
 
-      BlockData blockData = plugin.getBlockManager().getBlockData(region, blockMaterial);
+      BlockData blockData = plugin.getBlockManager().getBlock(region.toString(), blockMaterial);
       String reward = blockData.getRandomReward();
 
       ItemStack minedReward = plugin.getMineRewardManager().getReward(reward).getItemStack();
