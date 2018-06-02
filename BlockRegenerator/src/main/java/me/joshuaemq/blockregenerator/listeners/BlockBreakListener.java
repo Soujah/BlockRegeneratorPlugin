@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Random;
 
 import java.util.Set;
-import me.joshuaemq.blockregenerator.BlockRegenerator;
+import me.joshuaemq.blockregenerator.BlockRegeneratorPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -26,9 +26,9 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
 public class BlockBreakListener implements Listener {
 
-  private BlockRegenerator plugin;
+  private BlockRegeneratorPlugin plugin;
 
-  public BlockBreakListener(BlockRegenerator plugin) {
+  public BlockBreakListener(BlockRegeneratorPlugin plugin) {
     this.plugin = plugin;
   }
 

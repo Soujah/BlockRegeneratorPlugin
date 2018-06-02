@@ -5,18 +5,17 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+import me.joshuaemq.blockregenerator.BlockRegeneratorPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 
-import me.joshuaemq.blockregenerator.BlockRegenerator;
-
 public class SQLManager {
     public Connection connection;
-    private BlockRegenerator plugin;
+    private BlockRegeneratorPlugin plugin;
  
-    public SQLManager(final BlockRegenerator plugin) {
+    public SQLManager(final BlockRegeneratorPlugin plugin) {
         this.plugin = plugin;
     }
     private void openConnection(){
