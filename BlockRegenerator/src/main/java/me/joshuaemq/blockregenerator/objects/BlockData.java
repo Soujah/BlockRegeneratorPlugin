@@ -16,7 +16,7 @@ public class BlockData {
     private final int respawnTime;
     private final Map<String, Double> rewardMap;
 
-    public BlockData(double exhaustChance, double lootChance, Material depleteMaterial, int respawnTime) {
+    public BlockData(double exhaustChance, double lootChance, Material depleteMaterial, int respawnTime, Map rewardMap) {
         this.random = new Random();
         this.exhaustChance = exhaustChance;
         this.lootChance = lootChance;
