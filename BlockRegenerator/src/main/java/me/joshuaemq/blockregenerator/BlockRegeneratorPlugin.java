@@ -59,6 +59,7 @@ public class BlockRegeneratorPlugin extends JavaPlugin {
     buildConfig("blocks.yml");
     saveConfig();
 
+    loadBlocks();
     loadItems();
 
     Bukkit.getServer().getLogger().info("Block Regenerator by Joshuaemq: Enabled!");
@@ -143,33 +144,31 @@ public class BlockRegeneratorPlugin extends JavaPlugin {
 
 
   private void loadBlocks() {
-
       List<String> setRegions = lootTableData.getStringList("");
       HashMap<String, Integer> rewardAndWeightMap = new HashMap<String, Integer>();
 
       for (String region : setRegions) {
+          List<String> regionOres = lootTableData.getStringList(region);
+          for (String oreType : regionOres) {
 
-          String oreType = lootTableData.getString(region);
-          Material oreTypeMat = Material.matchMaterial(oreType);
-          int oreRespawn = lootTableData.getInt(region + oreType + ".respawn");
-          double exhaust = lootTableData.getInt(region + oreType + ".exhaust-chance");
-          double lootChance = lootTableData.getInt(region + oreType + ".loot-chance");
-          List<String> regionRewards = lootTableData.getStringList(region + ".rewards");
+              Material oreTypeMat = Material.matchMaterial(oreType);
+              int oreRespawn = lootTableData.getInt(region + oreType + ".respawn");
+              double exhaust = lootTableData.getInt(region + oreType + ".exhaust-chance");
+              double lootChance = lootTableData.getInt(region + oreType + ".loot-chance");
+              List<String> regionRewards = lootTableData.getStringList(region + ".rewards");
 
-          for (String rewardName : regionRewards) {
+              for (String rewardName : regionRewards) {
 
-              int weight = lootTableData.getInt(region + ".rewards" + rewardName);
-              rewardAndWeightMap.put(rewardName, weight);
-              //add to blockmanager
-              BlockData blockData = new BlockData(exhaust, lootChance, oreTypeMat, oreRespawn, rewardAndWeightMap);
-              rewardAndWeightMap.clear();
-              blockManager.addBlock(region, blockData);
+                  int weight = lootTableData.getInt(region + ".rewards" + rewardName);
+                  rewardAndWeightMap.put(rewardName, weight);
+                  //add to blockmanager
+                  BlockData blockData = new BlockData(exhaust, lootChance, oreTypeMat, oreRespawn, rewardAndWeightMap);
+                  rewardAndWeightMap.clear();
+                  blockManager.addBlock(region, blockData);
 
+              }
           }
-
       }
-
-
   }
 
   public SQLManager getSQLManager() {
