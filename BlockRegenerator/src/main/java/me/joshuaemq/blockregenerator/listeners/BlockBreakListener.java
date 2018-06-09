@@ -60,7 +60,18 @@ public class BlockBreakListener implements Listener {
 
             // TODO: Give player exp
 
-            Bukkit.getWorld(player.getLocation().getWorld().getName()).dropItemNaturally(player.getLocation(), minedReward);
+            //if random number between 1 and 100 < loot drop chance, perform normal logic
+            //if random number between 1 and 100 > loot drop chance, dont drop anything
+
+            Random random = new Random();
+            int randomNumber = random.nextInt(100);
+
+            BlockData lootDrop = plugin.getBlockManager().getBlock(region.getId(), blockMaterial);
+            double lootDropChance = lootDrop.getLootChance();
+
+            if (randomNumber < lootDropChance) {
+                Bukkit.getWorld(player.getLocation().getWorld().getName()).dropItemNaturally(player.getLocation(), minedReward);
+            }
 
             Location brokenBlockLocation = brokenBlock.getLocation().clone();
 
@@ -74,11 +85,11 @@ public class BlockBreakListener implements Listener {
             //if random number between 1 and 100 > block exhaust chance, perform normal logic
             //if random number between 1 and 100 < block exhaust chance, set broken block to the original material
 
-            Random random = new Random();
-            int randomNumber = random.nextInt(100);
+            Random random2 = new Random();
+            int randomNumber2 = random.nextInt(100);
 
-
-            double exhaust = plugin.getLootTable().getInt(region.getId() + blockMaterial + ".exhaust-chance");
+            BlockData blockInformation = plugin.getBlockManager().getBlock(region.getId(), blockMaterial);
+            double exhaust = blockInformation.getExhaustChance();
 
             if (randomNumber > exhaust) {
                 plugin.getSQLManager().insertBlock(blockMaterial.toString(), x, y, z,
