@@ -1,6 +1,7 @@
 package me.joshuaemq.blockregenerator.objects;
 
 import com.sk89q.worldedit.regions.Region;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 
 import java.util.HashMap;
@@ -22,7 +23,7 @@ public class BlockData {
         this.lootChance = lootChance;
         this.depleteMaterial = depleteMaterial;
         this.respawnTime = respawnTime;
-        this.rewardMap = new HashMap<>();
+        this.rewardMap = rewardMap;
     }
 
     public double getExhaustChance() {
@@ -47,7 +48,8 @@ public class BlockData {
 
     public String getRandomReward() {
         double weightTotal = 0;
-        for (double rewardWeight : rewardMap.values()) {
+        Bukkit.getServer().getLogger().info("REWARD MAP: " + this.getRewardMap().toString());
+        for (double rewardWeight : this.getRewardMap().values()) {
             weightTotal += rewardWeight;
         }
         double targetWeight = random.nextDouble() * weightTotal;

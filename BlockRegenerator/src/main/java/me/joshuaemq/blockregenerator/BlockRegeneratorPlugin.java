@@ -45,6 +45,9 @@ public class BlockRegeneratorPlugin extends JavaPlugin {
 
         Bukkit.getPluginManager().registerEvents(new BlockBreakListener(this), this);
 
+        mineRewardManager = new MineRewardManager(this);
+        blockManager = new BlockManager(this);
+
         sqlManager = new SQLManager(this);
         sqlManager.initDatabase();
         startCheck();
@@ -119,7 +122,6 @@ public class BlockRegeneratorPlugin extends JavaPlugin {
         for (String itemInConfig : this.getLootItems().getKeys(false)) {
             lootItems.add(itemInConfig);
         }
-        Bukkit.getServer().getLogger().info("ITEMS: " + lootItems);
 
         for (String id : lootItems) {
             Material material;
@@ -142,8 +144,8 @@ public class BlockRegeneratorPlugin extends JavaPlugin {
 
             MineReward mineReward = new MineReward(itemStack, experience, levelRequirement);
 
-            Bukkit.getServer().getLogger().info("MINEREWARD: " + mineReward.toString());
             mineRewardManager.addReward(id, mineReward);
+
         }
     }
 
@@ -151,15 +153,12 @@ public class BlockRegeneratorPlugin extends JavaPlugin {
     private void loadBlocks() {
         List<String> setRegions = new ArrayList<String>();
 
-        HashMap<String, Integer> rewardAndWeightMap = new HashMap<String, Integer>();
+        HashMap<String, Double> rewardAndWeightMap = new HashMap<String, Double>();
 
         for (String regionInConfig : this.getLootTable().getKeys(false)) {
             setRegions.add(regionInConfig);
         }
-        Bukkit.getServer().getLogger().info("REGIONS: " + setRegions);
         for (String region : setRegions) {
-            //List<String> regionOres = lootTableData.getStringList(region);
-            Bukkit.getServer().getLogger().info("REGION ORES: " + this.getLootTable().getConfigurationSection(region).getKeys(false));
             for (String oreType : this.getLootTable().getConfigurationSection(region).getKeys(false)) {
 
                 Material oreTypeMat = Material.matchMaterial(oreType);
@@ -170,7 +169,7 @@ public class BlockRegeneratorPlugin extends JavaPlugin {
 
                 for (String rewardName : regionRewards) {
 
-                    int weight = lootTableData.getInt(region + ".rewards" + rewardName);
+                    double weight = lootTableData.getDouble(region + ".rewards" + rewardName);
                     rewardAndWeightMap.put(rewardName, weight);
                     //add to blockmanager
                     BlockData blockData = new BlockData(exhaust, lootChance, oreTypeMat, oreRespawn, rewardAndWeightMap);
