@@ -1,38 +1,18 @@
-##region-name:
-##    DIAMOND_ORE:
-##        exhaust-chance: 1.0
-##        respawn: 50
-##        rewards:
-##            reward1: 30
-##            reward2: 10
-##            cooldiamond: 5
-##    IRON_ORE:
-##        respawn: 100000
-##        rewards:
-##            dankmeme: 10
-##            dankmeme2: 10
-##region-two:
-##    DIAMOND_ORE:
-##        exhaust-chance: 1.0
-##        respawn: 100000
-##        rewards:
-##            reward1: 30
-##            reward2: 10
-##            cooldiamond: 5
-##    IRON_ORE:
-##        respawn: 100000
-##        rewards:
-##            dankmeme: 10
-##            dankmeme2: 10
-##region-name:
-##    DIAMOND_ORE:
-##        respawn: 50
-##        rewards:
-##            reward1: 30
-##            reward2: 10
-##            cooldiamond: 5
-##    IRON_ORE:
-##        respawn: 100000
-##        rewards:
-##            dankmeme: 10
-##            dankmeme2: 10
+#spawn-region:
+#    DIAMOND_ORE:
+#        replace-material: BEDROCK
+#        exhaust-chance: 0.0
+#        loot-chance: 0.5
+#        respawn-millis: 50
+#        rewards:
+#            reward1: 30
+#            reward2: 10
+#            cooldiamond: 5
+#    IRON_ORE:
+#        replace-material: BEDROCK
+#        exhaust-chance: 1.0
+#        loot-chance: 0.5
+#        respawn-millis: 10
+#        rewards:
+#            reward2: 10
+#            cooldiamond: 10

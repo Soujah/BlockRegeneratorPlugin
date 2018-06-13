@@ -24,7 +24,7 @@ public class MineRewardManager {
         if (rewardMap.containsKey(identifier)) {
             return rewardMap.get(identifier);
         }
-        plugin.getLogger().severe("No reward with the identifier " + identifier + " exists!");
+        plugin.getLogger().warning("No reward with the identifier " + identifier + " exists!");
         return null;
     }
 }

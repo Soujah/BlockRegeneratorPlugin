@@ -4,193 +4,187 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import com.sun.org.apache.xerces.internal.xs.StringList;
 import me.joshuaemq.blockregenerator.listeners.BlockBreakListener;
 import me.joshuaemq.blockregenerator.managers.BlockManager;
 import me.joshuaemq.blockregenerator.managers.MineRewardManager;
 import me.joshuaemq.blockregenerator.managers.SQLManager;
 import me.joshuaemq.blockregenerator.objects.BlockData;
 import me.joshuaemq.blockregenerator.objects.MineReward;
+import me.joshuaemq.blockregenerator.tasks.BlockRespawnTask;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Item;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitScheduler;
 
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 
 public class BlockRegeneratorPlugin extends JavaPlugin {
 
-    private WorldGuardPlugin worldGuardPlugin;
-    private MineRewardManager mineRewardManager;
-    private BlockManager blockManager;
-    private SQLManager sqlManager;
+  private WorldGuardPlugin worldGuardPlugin;
+  private MineRewardManager mineRewardManager;
+  private BlockManager blockManager;
+  private SQLManager sqlManager;
+  private BlockRespawnTask blockRespawnTask;
 
-    private FileConfiguration lootTableData;
-    private FileConfiguration lootItemsData;
+  private FileConfiguration blockTableData;
+  private FileConfiguration lootItemsData;
 
-    public void onEnable() {
-        worldGuardPlugin = (WorldGuardPlugin) getServer().getPluginManager().getPlugin("WorldGuard");
+  public void onEnable() {
+    worldGuardPlugin = (WorldGuardPlugin) getServer().getPluginManager().getPlugin("WorldGuard");
 
-        lootTableData = YamlConfiguration
-                .loadConfiguration(new File(getDataFolder(), "blocks.yml"));
-        lootItemsData = YamlConfiguration
-                .loadConfiguration(new File(getDataFolder(), "items.yml"));
+    blockTableData = YamlConfiguration
+        .loadConfiguration(new File(getDataFolder(), "blocks.yml"));
+    lootItemsData = YamlConfiguration
+        .loadConfiguration(new File(getDataFolder(), "items.yml"));
 
-        Bukkit.getPluginManager().registerEvents(new BlockBreakListener(this), this);
+    Bukkit.getPluginManager().registerEvents(new BlockBreakListener(this), this);
 
-        mineRewardManager = new MineRewardManager(this);
-        blockManager = new BlockManager(this);
+    mineRewardManager = new MineRewardManager(this);
+    blockManager = new BlockManager();
 
-        sqlManager = new SQLManager(this);
-        sqlManager.initDatabase();
-        startCheck();
+    sqlManager = new SQLManager(this);
+    sqlManager.initDatabase();
 
-        getConfig().options().copyDefaults(true);
-        saveConfig();
-        reloadConfig();
+    blockRespawnTask = new BlockRespawnTask(sqlManager);
+    blockRespawnTask.runTaskTimer(this, 200L, 4 * 20L);
 
-        buildConfig("items.yml");
-        buildConfig("blocks.yml");
-        saveConfig();
+    getConfig().options().copyDefaults(true);
+    saveConfig();
+    reloadConfig();
 
-        loadBlocks();
-        loadItems();
+    buildConfig("items.yml");
+    buildConfig("blocks.yml");
+    saveConfig();
 
-        Bukkit.getServer().getLogger().info("Block Regenerator by Joshuaemq: Enabled!");
+    loadBlocks();
+    loadItems();
+
+    Bukkit.getServer().getLogger().info("Block Regenerator by Joshuaemq: Enabled!");
+  }
+
+  public void onDisable() {
+    HandlerList.unregisterAll();
+
+    worldGuardPlugin = null;
+    sqlManager = null;
+
+    blockRespawnTask.cancel();
+
+    Bukkit.getServer().getLogger().info("Block Regenerator by Joshuaemq: Disabled!");
+  }
+
+  public WorldGuardPlugin getWorldGuard() {
+    return worldGuardPlugin;
+  }
+
+  public FileConfiguration getLootTable() {
+    return blockTableData;
+  }
+
+  public FileConfiguration getLootItems() {
+    return lootItemsData;
+  }
+
+  private void buildConfig(String fileName) { //creates data config for loot to be made
+    File file = new File(getDataFolder(), fileName);
+
+    if (file.exists()) {
+      return;
     }
-
-    private void startCheck() {
-        BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-        scheduler.scheduleSyncRepeatingTask(this, new Runnable() {
-            @Override
-            public void run() {
-                sqlManager.check();
-            }
-        }, 0L, 4 * 20L);
+    try {
+      file.createNewFile();
+    } catch (IOException e1) {
+      e1.printStackTrace();
     }
-
-    public void onDisable() {
-        HandlerList.unregisterAll();
-
-        worldGuardPlugin = null;
-        sqlManager = null;
-
-        Bukkit.getServer().getLogger().info("Block Regenerator by Joshuaemq: Disabled!");
+    FileConfiguration configuration = YamlConfiguration.loadConfiguration(file);
+    try {
+      configuration.save(file);
+    } catch (IOException e1) {
+      e1.printStackTrace();
     }
+  }
 
-    public WorldGuardPlugin getWorldGuard() {
-        return worldGuardPlugin;
+  private void loadItems() {
+    for (String id : lootItemsData.getKeys(false)) {
+      Material material;
+      try {
+        material = Material.valueOf(lootItemsData.getString(id + ".material"));
+      } catch (Exception e) {
+        getLogger().severe("Invalid material name! Failed to load!");
+        continue;
+      }
+      String name = lootItemsData.getString(id + ".display-name", "Item");
+      List<String> lore = lootItemsData.getStringList(id + ".lore");
+      ItemStack itemStack = new ItemStack(material);
+      ItemMeta meta = itemStack.getItemMeta();
+      meta.setDisplayName(name);
+      meta.setLore(lore);
+      itemStack.setItemMeta(meta);
+
+      int levelRequirement = lootItemsData.getInt(id + ".level-requirement", 0);
+      float experience = (float) lootItemsData.getDouble(id + ".experience", 0);
+
+      MineReward mineReward = new MineReward(itemStack, experience, levelRequirement);
+
+      mineRewardManager.addReward(id, mineReward);
     }
+  }
 
-    public FileConfiguration getLootTable() {
-        return lootTableData;
-    }
-
-    public FileConfiguration getLootItems() {
-        return lootItemsData;
-    }
-
-    private void buildConfig(String fileName) { //creates data config for loot to be made
-        File file = new File(getDataFolder(), fileName);
-
-        if (file.exists()) {
-            return;
-        }
+  private void loadBlocks() {
+    Map<String, Map<Material, BlockData>> blockMap = new HashMap<>();
+    for (String regionId : blockTableData.getKeys(false)) {
+      Map<Material, BlockData> materialBlockMap = new HashMap<>();
+      ConfigurationSection oreSection = blockTableData.getConfigurationSection(regionId);
+      for (String oreType : oreSection.getKeys(false)) {
+        Material oreMaterial;
         try {
-            file.createNewFile();
-        } catch (IOException e1) {
-            e1.printStackTrace();
+          oreMaterial = Material.getMaterial(oreType);
+        } catch (Exception e) {
+          getLogger().warning("Skipping bad material type " + oreType);
+          continue;
         }
-        FileConfiguration configuration = YamlConfiguration.loadConfiguration(file);
+        Material replacementMaterial;
         try {
-            configuration.save(file);
-        } catch (IOException e1) {
-            e1.printStackTrace();
+          String replaceOre = oreSection.getString(oreType + ".replace-material", "BEDROCK");
+          replacementMaterial = Material.getMaterial(replaceOre);
+        } catch (Exception e) {
+          getLogger().warning("Bad replacement material for " + regionId + "+" + oreType);
+          replacementMaterial = Material.BEDROCK;
         }
-    }
+        int oreRespawn = oreSection.getInt(oreType + ".respawn-millis");
+        double exhaust = oreSection.getDouble(oreType + ".exhaust-chance");
+        double lootChance = oreSection.getDouble(oreType + ".loot-chance");
 
-    private void loadItems() {
-        List<String> lootItems = new ArrayList<String>();
-
-        for (String itemInConfig : this.getLootItems().getKeys(false)) {
-            lootItems.add(itemInConfig);
+        ConfigurationSection rewardSection = oreSection.getConfigurationSection(oreType + ".rewards");
+        Map<String, Double> rewardAndWeightMap = new HashMap<>();
+        for (String rewardName : rewardSection.getKeys(false)) {
+          rewardAndWeightMap.put(rewardName, rewardSection.getDouble(rewardName));
         }
+        BlockData blockData = new BlockData(exhaust, lootChance, replacementMaterial, oreRespawn,
+            rewardAndWeightMap);
 
-        for (String id : lootItems) {
-            Material material;
-            try {
-                material = Material.valueOf(lootItemsData.getString(id + ".material"));
-            } catch (Exception e) {
-                getLogger().severe("Invalid material name! Failed to load!");
-                continue;
-            }
-            String name = lootItemsData.getString(id + ".display-name", "Item");
-            List<String> lore = lootItemsData.getStringList(id + ".lore");
-            ItemStack itemStack = new ItemStack(material);
-            ItemMeta meta = itemStack.getItemMeta();
-            meta.setDisplayName(name);
-            meta.setLore(lore);
-            itemStack.setItemMeta(meta);
-
-            int levelRequirement = lootItemsData.getInt(id + ".level-requirement", 0);
-            float experience = (float) lootItemsData.getDouble(id + ".experience", 0);
-
-            MineReward mineReward = new MineReward(itemStack, experience, levelRequirement);
-
-            mineRewardManager.addReward(id, mineReward);
-
-        }
+        materialBlockMap.put(oreMaterial, blockData);
+      }
+      blockMap.put(regionId, materialBlockMap);
     }
+    blockManager.setBlockMap(blockMap);
+  }
 
+  public SQLManager getSQLManager() {
+    return sqlManager;
+  }
 
-    private void loadBlocks() {
-        List<String> setRegions = new ArrayList<String>();
+  public MineRewardManager getMineRewardManager() {
+    return mineRewardManager;
+  }
 
-        HashMap<String, Double> rewardAndWeightMap = new HashMap<String, Double>();
-
-        for (String regionInConfig : this.getLootTable().getKeys(false)) {
-            setRegions.add(regionInConfig);
-        }
-        for (String region : setRegions) {
-            for (String oreType : this.getLootTable().getConfigurationSection(region).getKeys(false)) {
-
-                Material oreTypeMat = Material.matchMaterial(oreType);
-                int oreRespawn = lootTableData.getInt(region + oreType + ".respawn");
-                double exhaust = lootTableData.getInt(region + oreType + ".exhaust-chance");
-                double lootChance = lootTableData.getInt(region + oreType + ".loot-chance");
-                List<String> regionRewards = lootTableData.getStringList(region + ".rewards");
-
-                for (String rewardName : regionRewards) {
-
-                    double weight = lootTableData.getDouble(region + ".rewards" + rewardName);
-                    rewardAndWeightMap.put(rewardName, weight);
-                    //add to blockmanager
-                    BlockData blockData = new BlockData(exhaust, lootChance, oreTypeMat, oreRespawn, rewardAndWeightMap);
-                    rewardAndWeightMap.clear();
-                    blockManager.addBlock(region, blockData);
-
-                }
-            }
-        }
-    }
-
-    public SQLManager getSQLManager() {
-        return sqlManager;
-    }
-
-    public MineRewardManager getMineRewardManager() {
-        return mineRewardManager;
-    }
-
-    public BlockManager getBlockManager() {
-        return blockManager;
-    }
+  public BlockManager getBlockManager() {
+    return blockManager;
+  }
 
 }
