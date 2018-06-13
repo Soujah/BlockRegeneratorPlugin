@@ -1,9 +1,11 @@
 package me.joshuaemq.blockregenerator;
 
+import com.tealcube.minecraft.bukkit.TextUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import me.joshuaemq.blockregenerator.commands.BaseCommand;
 import me.joshuaemq.blockregenerator.listeners.BlockBreakListener;
 import me.joshuaemq.blockregenerator.managers.BlockManager;
 import me.joshuaemq.blockregenerator.managers.MineRewardManager;
@@ -22,8 +24,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import se.ranzdo.bukkit.methodcommand.CommandHandler;
 
 public class BlockRegeneratorPlugin extends JavaPlugin {
+
+  private CommandHandler commandHandler;
 
   private WorldGuardPlugin worldGuardPlugin;
   private MineRewardManager mineRewardManager;
@@ -35,6 +40,9 @@ public class BlockRegeneratorPlugin extends JavaPlugin {
   private FileConfiguration lootItemsData;
 
   public void onEnable() {
+    commandHandler = new CommandHandler(this);
+    commandHandler.registerCommands(new BaseCommand(this));
+
     worldGuardPlugin = (WorldGuardPlugin) getServer().getPluginManager().getPlugin("WorldGuard");
 
     blockTableData = YamlConfiguration
@@ -70,11 +78,13 @@ public class BlockRegeneratorPlugin extends JavaPlugin {
   public void onDisable() {
     HandlerList.unregisterAll();
 
-    worldGuardPlugin = null;
+    commandHandler = null;
+
     sqlManager = null;
+    mineRewardManager = null;
+    blockManager = null;
 
     blockRespawnTask.cancel();
-
     Bukkit.getServer().getLogger().info("Block Regenerator by Joshuaemq: Disabled!");
   }
 
@@ -118,8 +128,8 @@ public class BlockRegeneratorPlugin extends JavaPlugin {
         getLogger().severe("Invalid material name! Failed to load!");
         continue;
       }
-      String name = lootItemsData.getString(id + ".display-name", "Item");
-      List<String> lore = lootItemsData.getStringList(id + ".lore");
+      String name = TextUtils.color(lootItemsData.getString(id + ".display-name", "Item"));
+      List<String> lore = TextUtils.color(lootItemsData.getStringList(id + ".lore"));
       ItemStack itemStack = new ItemStack(material);
       ItemMeta meta = itemStack.getItemMeta();
       meta.setDisplayName(name);

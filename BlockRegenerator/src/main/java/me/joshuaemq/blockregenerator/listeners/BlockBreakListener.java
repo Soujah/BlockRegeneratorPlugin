@@ -1,7 +1,10 @@
 package me.joshuaemq.blockregenerator.listeners;
 
+import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.sendMessage;
+
 import me.joshuaemq.blockregenerator.BlockRegeneratorPlugin;
 import me.joshuaemq.blockregenerator.objects.BlockData;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -65,9 +68,11 @@ public class BlockBreakListener implements Listener {
 
     double lootDropChance = blockData.getLootChance();
     if (lootDropChance >= random.nextDouble()) {
+      sendMessage(player, "&aYou mined a block!");
       String reward = blockData.getRandomReward();
       ItemStack minedReward = plugin.getMineRewardManager().getReward(reward).getItemStack();
-      brokenBlock.getWorld().dropItemNaturally(brokenBlock.getLocation(), minedReward);
+      Location dropLocation = brokenBlock.getLocation().clone().add(0.5, 0.5, 0.5);
+      brokenBlock.getWorld().dropItemNaturally(dropLocation, minedReward);
 
       if (blockData.getExhaustChance() >= random.nextDouble()) {
         brokenBlock.getLocation().getBlock().setType(blockData.getDepleteMaterial());

@@ -1,13 +1,8 @@
 package me.joshuaemq.blockregenerator.objects;
 
-import me.joshuaemq.blockregenerator.managers.BlockManager;
-import me.joshuaemq.blockregenerator.managers.MineRewardManager;
 import org.bukkit.inventory.ItemStack;
 
 public class MineReward {
-
-    private MineRewardManager mineRewardManager;
-    private BlockManager blockManager;
 
     private final ItemStack itemStack;
     private final float experience;
