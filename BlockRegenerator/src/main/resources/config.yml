@@ -1,3 +1,5 @@
+version: "0.0.1"
+
 # When enabled, grant xp as strife skill xp instead of orbs
 enable-strife-exp: false
 

@@ -1,18 +1,21 @@
-#spawn-region:
-#    DIAMOND_ORE:
-#        replace-material: BEDROCK
-#        exhaust-chance: 0.0
-#        loot-chance: 0.5
-#        respawn-millis: 50
-#        rewards:
-#            reward1: 30
-#            reward2: 10
-#            cooldiamond: 5
-#    IRON_ORE:
-#        replace-material: BEDROCK
-#        exhaust-chance: 1.0
-#        loot-chance: 0.5
-#        respawn-millis: 10
-#        rewards:
-#            reward2: 10
-#            cooldiamond: 10
+version: "0.0.1"
+
+spawn:
+    DIAMOND_ORE:
+        replace-material: STONE
+        exhaust-chance: 0.5
+        loot-chance: 0.25
+        respawn-millis: 900000
+        rewards:
+            spawndiamondI: 50
+            spawndiamondII: 10
+            spawnemerald: 10
+    IRON_ORE:
+        replace-material: STONE
+        exhaust-chance: 0.5
+        loot-chance: 0.25
+        respawn-millis: 120000
+        rewards:
+            spawnironI: 50
+            spawnironII: 10
+            spawnemerald: 10

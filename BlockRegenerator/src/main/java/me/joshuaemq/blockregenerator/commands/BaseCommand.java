@@ -16,8 +16,8 @@ public class BaseCommand {
 
   @Command(identifier = "blockregen reload", permissions = "blockregen.command.reload", onlyPlayers = false)
   public void reloadCommand(CommandSender sender) {
-    plugin.onEnable();
     plugin.onDisable();
+    plugin.onEnable();
     sendMessage(sender, "&aBlockRegenerator Reloaded!");
   }
 }

@@ -2,6 +2,8 @@ package me.joshuaemq.blockregenerator.listeners;
 
 import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.sendMessage;
 
+import com.sk89q.worldguard.bukkit.WGBukkit;
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import me.joshuaemq.blockregenerator.BlockRegeneratorPlugin;
 import me.joshuaemq.blockregenerator.objects.BlockData;
 import org.bukkit.Location;
@@ -22,10 +24,12 @@ import java.util.Random;
 public class BlockBreakListener implements Listener {
 
   private final BlockRegeneratorPlugin plugin;
+  private final WorldGuardPlugin worldGuardPlugin;
   private final Random random;
 
   public BlockBreakListener(BlockRegeneratorPlugin plugin) {
     this.plugin = plugin;
+    this.worldGuardPlugin = WGBukkit.getPlugin();
     this.random = new Random();
   }
 
@@ -35,7 +39,7 @@ public class BlockBreakListener implements Listener {
     Block brokenBlock = event.getBlock();
 
     ApplicableRegionSet regionSet =
-        plugin.getWorldGuard().getRegionManager(player.getWorld())
+        worldGuardPlugin.getRegionManager(player.getWorld())
             .getApplicableRegions(brokenBlock.getLocation());
 
     if (regionSet.size() == 0) {

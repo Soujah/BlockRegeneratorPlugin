@@ -1,8 +1,10 @@
 package me.joshuaemq.blockregenerator;
 
 import com.tealcube.minecraft.bukkit.TextUtils;
+import com.tealcube.minecraft.bukkit.facecore.plugin.FacePlugin;
+import io.pixeloutlaw.minecraft.spigot.config.VersionedConfiguration.VersionUpdateType;
+import io.pixeloutlaw.minecraft.spigot.config.VersionedSmartYamlConfiguration;
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 import me.joshuaemq.blockregenerator.commands.BaseCommand;
@@ -16,39 +18,39 @@ import me.joshuaemq.blockregenerator.tasks.BlockRespawnTask;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.plugin.java.JavaPlugin;
 
-import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import se.ranzdo.bukkit.methodcommand.CommandHandler;
 
-public class BlockRegeneratorPlugin extends JavaPlugin {
+public class BlockRegeneratorPlugin extends FacePlugin {
 
   private CommandHandler commandHandler;
 
-  private WorldGuardPlugin worldGuardPlugin;
   private MineRewardManager mineRewardManager;
   private BlockManager blockManager;
   private SQLManager sqlManager;
   private BlockRespawnTask blockRespawnTask;
 
-  private FileConfiguration blockTableData;
-  private FileConfiguration lootItemsData;
+  private VersionedSmartYamlConfiguration configYAML;
+  private VersionedSmartYamlConfiguration blocksYAML;
+  private VersionedSmartYamlConfiguration itemsYAML;
 
-  public void onEnable() {
+  @Override
+  public void enable() {
     commandHandler = new CommandHandler(this);
     commandHandler.registerCommands(new BaseCommand(this));
 
-    worldGuardPlugin = (WorldGuardPlugin) getServer().getPluginManager().getPlugin("WorldGuard");
-
-    blockTableData = YamlConfiguration
-        .loadConfiguration(new File(getDataFolder(), "blocks.yml"));
-    lootItemsData = YamlConfiguration
-        .loadConfiguration(new File(getDataFolder(), "items.yml"));
+    configYAML = new VersionedSmartYamlConfiguration(new File(getDataFolder(), "config.yml"),
+        getResource("config.yml"),
+        VersionUpdateType.BACKUP_AND_NEW);
+    blocksYAML = new VersionedSmartYamlConfiguration(new File(getDataFolder(), "blocks.yml"),
+        getResource("blocks.yml"),
+        VersionUpdateType.BACKUP_AND_NEW);
+    itemsYAML = new VersionedSmartYamlConfiguration(new File(getDataFolder(), "items.yml"),
+        getResource("items.yml"),
+        VersionUpdateType.BACKUP_AND_NEW);
 
     Bukkit.getPluginManager().registerEvents(new BlockBreakListener(this), this);
 
@@ -61,25 +63,19 @@ public class BlockRegeneratorPlugin extends JavaPlugin {
     blockRespawnTask = new BlockRespawnTask(sqlManager);
     blockRespawnTask.runTaskTimer(this, 200L, 4 * 20L);
 
-    getConfig().options().copyDefaults(true);
-    saveConfig();
-    reloadConfig();
-
-    buildConfig("items.yml");
-    buildConfig("blocks.yml");
-    saveConfig();
-
     loadBlocks();
     loadItems();
 
     Bukkit.getServer().getLogger().info("Block Regenerator by Joshuaemq: Enabled!");
   }
 
-  public void onDisable() {
-    HandlerList.unregisterAll();
+  @Override
+  public void disable() {
+    HandlerList.unregisterAll(this);
 
     commandHandler = null;
 
+    sqlManager.closeConnection();
     sqlManager = null;
     mineRewardManager = null;
     blockManager = null;
@@ -88,56 +84,28 @@ public class BlockRegeneratorPlugin extends JavaPlugin {
     Bukkit.getServer().getLogger().info("Block Regenerator by Joshuaemq: Disabled!");
   }
 
-  public WorldGuardPlugin getWorldGuard() {
-    return worldGuardPlugin;
-  }
-
-  public FileConfiguration getLootTable() {
-    return blockTableData;
-  }
-
-  public FileConfiguration getLootItems() {
-    return lootItemsData;
-  }
-
-  private void buildConfig(String fileName) { //creates data config for loot to be made
-    File file = new File(getDataFolder(), fileName);
-
-    if (file.exists()) {
-      return;
-    }
-    try {
-      file.createNewFile();
-    } catch (IOException e1) {
-      e1.printStackTrace();
-    }
-    FileConfiguration configuration = YamlConfiguration.loadConfiguration(file);
-    try {
-      configuration.save(file);
-    } catch (IOException e1) {
-      e1.printStackTrace();
-    }
-  }
-
   private void loadItems() {
-    for (String id : lootItemsData.getKeys(false)) {
+    for (String id : itemsYAML.getKeys(false)) {
+      if (!itemsYAML.isConfigurationSection(id)) {
+        continue;
+      }
       Material material;
       try {
-        material = Material.valueOf(lootItemsData.getString(id + ".material"));
+        material = Material.valueOf(itemsYAML.getString(id + ".material"));
       } catch (Exception e) {
         getLogger().severe("Invalid material name! Failed to load!");
         continue;
       }
-      String name = TextUtils.color(lootItemsData.getString(id + ".display-name", "Item"));
-      List<String> lore = TextUtils.color(lootItemsData.getStringList(id + ".lore"));
+      String name = TextUtils.color(itemsYAML.getString(id + ".display-name", "Item"));
+      List<String> lore = TextUtils.color(itemsYAML.getStringList(id + ".lore"));
       ItemStack itemStack = new ItemStack(material);
       ItemMeta meta = itemStack.getItemMeta();
       meta.setDisplayName(name);
       meta.setLore(lore);
       itemStack.setItemMeta(meta);
 
-      int levelRequirement = lootItemsData.getInt(id + ".level-requirement", 0);
-      float experience = (float) lootItemsData.getDouble(id + ".experience", 0);
+      int levelRequirement = itemsYAML.getInt(id + ".level-requirement", 0);
+      float experience = (float) itemsYAML.getDouble(id + ".experience", 0);
 
       MineReward mineReward = new MineReward(itemStack, experience, levelRequirement);
 
@@ -147,9 +115,12 @@ public class BlockRegeneratorPlugin extends JavaPlugin {
 
   private void loadBlocks() {
     Map<String, Map<Material, BlockData>> blockMap = new HashMap<>();
-    for (String regionId : blockTableData.getKeys(false)) {
+    for (String regionId : blocksYAML.getKeys(false)) {
+      if (!blocksYAML.isConfigurationSection(regionId)) {
+        continue;
+      }
       Map<Material, BlockData> materialBlockMap = new HashMap<>();
-      ConfigurationSection oreSection = blockTableData.getConfigurationSection(regionId);
+      ConfigurationSection oreSection = blocksYAML.getConfigurationSection(regionId);
       for (String oreType : oreSection.getKeys(false)) {
         Material oreMaterial;
         try {
@@ -170,7 +141,8 @@ public class BlockRegeneratorPlugin extends JavaPlugin {
         double exhaust = oreSection.getDouble(oreType + ".exhaust-chance");
         double lootChance = oreSection.getDouble(oreType + ".loot-chance");
 
-        ConfigurationSection rewardSection = oreSection.getConfigurationSection(oreType + ".rewards");
+        ConfigurationSection rewardSection = oreSection
+            .getConfigurationSection(oreType + ".rewards");
         Map<String, Double> rewardAndWeightMap = new HashMap<>();
         for (String rewardName : rewardSection.getKeys(false)) {
           rewardAndWeightMap.put(rewardName, rewardSection.getDouble(rewardName));
