@@ -1,0 +1,17 @@
+version: "0.0.1"
+
+# When enabled, grant xp as strife skill xp instead of orbs
+enable-strife-exp: false
+
+# Fatigue after successfully mining to nerf efficiency picks, in seconds. 0s to disable
+mine-fatigue-duration: 5
+mine-fatigue-itensity: 0
+
+# DB stuffs
+MySQL:
+  host: host
+  user: meme
+  password: dank
+  database: minecraft
+  port: 3306
+  prefix: ms_

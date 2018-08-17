@@ -1,140 +1,171 @@
 package me.joshuaemq.blockregenerator;
 
+import com.tealcube.minecraft.bukkit.TextUtils;
+import com.tealcube.minecraft.bukkit.facecore.plugin.FacePlugin;
+import io.pixeloutlaw.minecraft.spigot.config.VersionedConfiguration.VersionUpdateType;
+import io.pixeloutlaw.minecraft.spigot.config.VersionedSmartYamlConfiguration;
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
+import me.joshuaemq.blockregenerator.commands.BaseCommand;
 import me.joshuaemq.blockregenerator.listeners.BlockBreakListener;
+import me.joshuaemq.blockregenerator.managers.BlockManager;
+import me.joshuaemq.blockregenerator.managers.MineRewardManager;
 import me.joshuaemq.blockregenerator.managers.SQLManager;
+import me.joshuaemq.blockregenerator.objects.RegenBlock;
+import me.joshuaemq.blockregenerator.objects.MineReward;
+import me.joshuaemq.blockregenerator.tasks.BlockRespawnTask;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.HandlerList;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
-import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import se.ranzdo.bukkit.methodcommand.CommandHandler;
 
-public class BlockRegeneratorPlugin extends JavaPlugin {
+public class BlockRegeneratorPlugin extends FacePlugin {
 
-  private WorldGuardPlugin worldGuardPlugin;
+  private CommandHandler commandHandler;
+
+  private MineRewardManager mineRewardManager;
+  private BlockManager blockManager;
   private SQLManager sqlManager;
+  private BlockRespawnTask blockRespawnTask;
 
-  List<Material> oresList = new ArrayList<>();
+  private VersionedSmartYamlConfiguration configYAML;
+  private VersionedSmartYamlConfiguration blocksYAML;
+  private VersionedSmartYamlConfiguration itemsYAML;
 
-  public List<Material> getOresList() {
-    return oresList;
-  }
+  @Override
+  public void enable() {
+    commandHandler = new CommandHandler(this);
+    commandHandler.registerCommands(new BaseCommand(this));
 
-  private Material depletedOre = Material.BEDROCK;
-
-  public Material getDepletedOre() {
-    return depletedOre;
-  }
-
-  public void onEnable() {
-    worldGuardPlugin = (WorldGuardPlugin) getServer().getPluginManager().getPlugin("WorldGuard");
+    configYAML = new VersionedSmartYamlConfiguration(new File(getDataFolder(), "config.yml"),
+        getResource("config.yml"),
+        VersionUpdateType.BACKUP_AND_NEW);
+    blocksYAML = new VersionedSmartYamlConfiguration(new File(getDataFolder(), "blocks.yml"),
+        getResource("blocks.yml"),
+        VersionUpdateType.BACKUP_AND_NEW);
+    itemsYAML = new VersionedSmartYamlConfiguration(new File(getDataFolder(), "items.yml"),
+        getResource("items.yml"),
+        VersionUpdateType.BACKUP_AND_NEW);
 
     Bukkit.getPluginManager().registerEvents(new BlockBreakListener(this), this);
 
-    sqlManager = new SQLManager(this);
-    sqlManager.initDatabase();
-    startCheck();
+    mineRewardManager = new MineRewardManager(this);
+    blockManager = new BlockManager();
 
-    getConfig().options().copyDefaults(true);
-    saveConfig();
-    reloadConfig();
+    sqlManager = new SQLManager(configYAML);
 
-    lootTable();
-    lootItems();
-    saveConfig();
-    oresList.add(Material.IRON_ORE);
-    oresList.add(Material.DIAMOND_ORE);
-    oresList.add(Material.GOLD_ORE);
-    oresList.add(Material.LAPIS_ORE);
-    oresList.add(Material.EMERALD_ORE);
-    oresList.add(Material.REDSTONE_ORE);
-    oresList.add(Material.COAL_ORE);
-    oresList.add(Material.QUARTZ_ORE);
+    blockRespawnTask = new BlockRespawnTask(sqlManager);
+    blockRespawnTask.runTaskTimer(this, 30 * 20L, 5 * 20L);
+
+    loadBlocks();
+    loadItems();
 
     Bukkit.getServer().getLogger().info("Block Regenerator by Joshuaemq: Enabled!");
   }
 
-  private void startCheck() {
-    BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-    scheduler.scheduleSyncRepeatingTask(this, new Runnable() {
-      @Override
-      public void run() {
-        sqlManager.check();
-      }
-    }, 0L, 4 * 20L);
-  }
+  @Override
+  public void disable() {
+    HandlerList.unregisterAll(this);
 
-  public void onDisable() {
-    HandlerList.unregisterAll();
-    worldGuardPlugin = null;
+    commandHandler = null;
+
+    sqlManager.closeConnection();
     sqlManager = null;
+    mineRewardManager = null;
+    blockManager = null;
+
+    blockRespawnTask.cancel();
     Bukkit.getServer().getLogger().info("Block Regenerator by Joshuaemq: Disabled!");
   }
 
-  public WorldGuardPlugin getWorldGuard() {
-    return worldGuardPlugin;
-  }
-
-  private FileConfiguration lootTableData = YamlConfiguration
-      .loadConfiguration(new File(getDataFolder() + "/data", "lootTable.yml"));
-  private FileConfiguration lootItemsData = YamlConfiguration
-      .loadConfiguration(new File(getDataFolder() + "/data", "lootItems.yml"));
-
-  public FileConfiguration getLootTable() {
-    return lootTableData;
-  }
-
-  public FileConfiguration getLootItems() {
-    return lootItemsData;
-  }
-
-  public void lootTable() { //creates data config for loot to be made
-    File lootTableData = new File(getDataFolder() + "/data", "lootTable.yml");
-
-    if (!lootTableData.exists()) {
-      try {
-        lootTableData.createNewFile();
-      } catch (IOException e1) {
-        e1.printStackTrace();
+  private void loadItems() {
+    for (String id : itemsYAML.getKeys(false)) {
+      if (!itemsYAML.isConfigurationSection(id)) {
+        continue;
       }
-      FileConfiguration lootConfig = YamlConfiguration.loadConfiguration(lootTableData);
-
+      Material material;
       try {
-        lootConfig.save(lootTableData);
-      } catch (IOException e1) {
-        e1.printStackTrace();
+        material = Material.valueOf(itemsYAML.getString(id + ".material"));
+      } catch (Exception e) {
+        getLogger().severe("Invalid material name! Failed to load!");
+        continue;
       }
+      String name = TextUtils.color(itemsYAML.getString(id + ".display-name", "Item"));
+      List<String> lore = TextUtils.color(itemsYAML.getStringList(id + ".lore"));
+      ItemStack itemStack = new ItemStack(material);
+      ItemMeta meta = itemStack.getItemMeta();
+      meta.setDisplayName(name);
+      meta.setLore(lore);
+      itemStack.setItemMeta(meta);
+
+      int levelRequirement = itemsYAML.getInt(id + ".level-requirement", 0);
+      float experience = (float) itemsYAML.getDouble(id + ".experience", 0);
+
+      MineReward mineReward = new MineReward(itemStack, experience, levelRequirement);
+
+      mineRewardManager.addReward(id, mineReward);
     }
   }
 
-  public void lootItems() { //creates data config for loot to be made
-    File lootItemsData = new File(getDataFolder() + "/data", "lootItems.yml");
-
-    if (!lootItemsData.exists()) {
-      try {
-        lootItemsData.createNewFile();
-      } catch (IOException e1) {
-        e1.printStackTrace();
+  private void loadBlocks() {
+    Map<String, Map<Material, RegenBlock>> blockMap = new HashMap<>();
+    for (String regionId : blocksYAML.getKeys(false)) {
+      if (!blocksYAML.isConfigurationSection(regionId)) {
+        continue;
       }
-      FileConfiguration lootConfig = YamlConfiguration.loadConfiguration(lootItemsData);
+      Map<Material, RegenBlock> materialBlockMap = new HashMap<>();
+      ConfigurationSection oreSection = blocksYAML.getConfigurationSection(regionId);
+      for (String oreType : oreSection.getKeys(false)) {
+        Material oreMaterial;
+        try {
+          oreMaterial = Material.getMaterial(oreType);
+        } catch (Exception e) {
+          getLogger().warning("Skipping bad material type " + oreType);
+          continue;
+        }
+        Material replacementMaterial;
+        try {
+          String replaceOre = oreSection.getString(oreType + ".replace-material", "BEDROCK");
+          replacementMaterial = Material.getMaterial(replaceOre);
+        } catch (Exception e) {
+          getLogger().warning("Bad replacement material for " + regionId + "+" + oreType);
+          replacementMaterial = Material.BEDROCK;
+        }
+        int oreRespawn = oreSection.getInt(oreType + ".respawn-millis");
+        double exhaust = oreSection.getDouble(oreType + ".exhaust-chance");
+        double lootChance = oreSection.getDouble(oreType + ".loot-chance");
 
-      try {
-        lootConfig.save(lootItemsData);
-      } catch (IOException e1) {
-        e1.printStackTrace();
+        ConfigurationSection rewardSection = oreSection
+            .getConfigurationSection(oreType + ".rewards");
+        Map<String, Double> rewardAndWeightMap = new HashMap<>();
+        for (String rewardName : rewardSection.getKeys(false)) {
+          rewardAndWeightMap.put(rewardName, rewardSection.getDouble(rewardName));
+        }
+        RegenBlock regenBlock = new RegenBlock(exhaust, lootChance, replacementMaterial, oreRespawn,
+            rewardAndWeightMap);
+
+        materialBlockMap.put(oreMaterial, regenBlock);
       }
+      blockMap.put(regionId, materialBlockMap);
     }
+    blockManager.setBlockMap(blockMap);
   }
 
   public SQLManager getSQLManager() {
     return sqlManager;
   }
+
+  public MineRewardManager getMineRewardManager() {
+    return mineRewardManager;
+  }
+
+  public BlockManager getBlockManager() {
+    return blockManager;
+  }
+
 }
