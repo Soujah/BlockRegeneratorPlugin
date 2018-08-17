@@ -1,63 +1,59 @@
 package me.joshuaemq.blockregenerator.objects;
 
-import org.bukkit.Material;
-
-import java.util.Map;
-import java.util.Random;
-
 public class BlockData {
 
-  private final Random random;
-  private final double exhaustChance;
-  private final double lootChance;
-  private final Material depleteMaterial;
-  private final int respawnTime;
-  private final Map<String, Double> rewardMap;
+  private int id;
+  private String material;
+  private String world;
+  private int x;
+  private int y;
+  private int z;
 
-  public BlockData(double exhaustChance, double lootChance, Material depleteMaterial,
-      int respawnTime, Map<String, Double> rewardMap) {
-    this.random = new Random();
-    this.exhaustChance = exhaustChance;
-    this.lootChance = lootChance;
-    this.depleteMaterial = depleteMaterial;
-    this.respawnTime = respawnTime;
-    this.rewardMap = rewardMap;
+  public int getId() {
+    return id;
   }
 
-  public double getExhaustChance() {
-    return exhaustChance;
+  public void setId(int id) {
+    this.id = id;
   }
 
-  public double getLootChance() {
-    return lootChance;
+  public String getMaterial() {
+    return material;
   }
 
-  public Material getDepleteMaterial() {
-    return depleteMaterial;
+  public void setMaterial(String material) {
+    this.material = material;
   }
 
-  public int getRespawnTime() {
-    return respawnTime;
+  public String getWorld() {
+    return world;
   }
 
-  public Map<String, Double> getRewardMap() {
-    return rewardMap;
+  public void setWorld(String world) {
+    this.world = world;
   }
 
-  public String getRandomReward() {
-    double weightTotal = 0;
-    for (double rewardWeight : this.getRewardMap().values()) {
-      weightTotal += rewardWeight;
-    }
-    double targetWeight = random.nextDouble() * weightTotal;
-    while (targetWeight > 0) {
-      for (String reward : rewardMap.keySet()) {
-        targetWeight -= rewardMap.get(reward);
-        if (targetWeight < 0) {
-          return reward;
-        }
-      }
-    }
-    return null;
+  public int getX() {
+    return x;
+  }
+
+  public void setX(int x) {
+    this.x = x;
+  }
+
+  public int getY() {
+    return y;
+  }
+
+  public void setY(int y) {
+    this.y = y;
+  }
+
+  public int getZ() {
+    return z;
+  }
+
+  public void setZ(int z) {
+    this.z = z;
   }
 }

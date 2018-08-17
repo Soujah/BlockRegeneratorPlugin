@@ -5,7 +5,7 @@ import static com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils.send
 import com.sk89q.worldguard.bukkit.WGBukkit;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import me.joshuaemq.blockregenerator.BlockRegeneratorPlugin;
-import me.joshuaemq.blockregenerator.objects.BlockData;
+import me.joshuaemq.blockregenerator.objects.RegenBlock;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -63,25 +63,25 @@ public class BlockBreakListener implements Listener {
       return;
     }
 
-    BlockData blockData = plugin.getBlockManager().getBlock(region.getId(), blockMaterial);
-    if (blockData == null) {
+    RegenBlock regenBlock = plugin.getBlockManager().getBlock(region.getId(), blockMaterial);
+    if (regenBlock == null) {
       return;
     }
 
     event.setCancelled(true);
 
-    double lootDropChance = blockData.getLootChance();
+    double lootDropChance = regenBlock.getLootChance();
     if (lootDropChance >= random.nextDouble()) {
       sendMessage(player, "&aYou mined a block!");
-      String reward = blockData.getRandomReward();
+      String reward = regenBlock.getRandomReward();
       ItemStack minedReward = plugin.getMineRewardManager().getReward(reward).getItemStack();
       Location dropLocation = brokenBlock.getLocation().clone().add(0.5, 0.5, 0.5);
       brokenBlock.getWorld().dropItemNaturally(dropLocation, minedReward);
 
-      if (blockData.getExhaustChance() >= random.nextDouble()) {
-        brokenBlock.getLocation().getBlock().setType(blockData.getDepleteMaterial());
+      if (regenBlock.getExhaustChance() >= random.nextDouble()) {
+        brokenBlock.getLocation().getBlock().setType(regenBlock.getDepleteMaterial());
 
-        int respawnDelay = blockData.getRespawnTime();
+        int respawnDelay = regenBlock.getRespawnTime();
         int x = brokenBlock.getX();
         int y = brokenBlock.getY();
         int z = brokenBlock.getZ();

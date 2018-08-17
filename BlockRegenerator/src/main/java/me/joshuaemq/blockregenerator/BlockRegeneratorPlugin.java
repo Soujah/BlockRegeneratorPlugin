@@ -12,7 +12,7 @@ import me.joshuaemq.blockregenerator.listeners.BlockBreakListener;
 import me.joshuaemq.blockregenerator.managers.BlockManager;
 import me.joshuaemq.blockregenerator.managers.MineRewardManager;
 import me.joshuaemq.blockregenerator.managers.SQLManager;
-import me.joshuaemq.blockregenerator.objects.BlockData;
+import me.joshuaemq.blockregenerator.objects.RegenBlock;
 import me.joshuaemq.blockregenerator.objects.MineReward;
 import me.joshuaemq.blockregenerator.tasks.BlockRespawnTask;
 import org.bukkit.Bukkit;
@@ -57,11 +57,10 @@ public class BlockRegeneratorPlugin extends FacePlugin {
     mineRewardManager = new MineRewardManager(this);
     blockManager = new BlockManager();
 
-    sqlManager = new SQLManager(this);
-    sqlManager.initDatabase();
+    sqlManager = new SQLManager(configYAML);
 
     blockRespawnTask = new BlockRespawnTask(sqlManager);
-    blockRespawnTask.runTaskTimer(this, 200L, 4 * 20L);
+    blockRespawnTask.runTaskTimer(this, 30 * 20L, 5 * 20L);
 
     loadBlocks();
     loadItems();
@@ -114,12 +113,12 @@ public class BlockRegeneratorPlugin extends FacePlugin {
   }
 
   private void loadBlocks() {
-    Map<String, Map<Material, BlockData>> blockMap = new HashMap<>();
+    Map<String, Map<Material, RegenBlock>> blockMap = new HashMap<>();
     for (String regionId : blocksYAML.getKeys(false)) {
       if (!blocksYAML.isConfigurationSection(regionId)) {
         continue;
       }
-      Map<Material, BlockData> materialBlockMap = new HashMap<>();
+      Map<Material, RegenBlock> materialBlockMap = new HashMap<>();
       ConfigurationSection oreSection = blocksYAML.getConfigurationSection(regionId);
       for (String oreType : oreSection.getKeys(false)) {
         Material oreMaterial;
@@ -147,10 +146,10 @@ public class BlockRegeneratorPlugin extends FacePlugin {
         for (String rewardName : rewardSection.getKeys(false)) {
           rewardAndWeightMap.put(rewardName, rewardSection.getDouble(rewardName));
         }
-        BlockData blockData = new BlockData(exhaust, lootChance, replacementMaterial, oreRespawn,
+        RegenBlock regenBlock = new RegenBlock(exhaust, lootChance, replacementMaterial, oreRespawn,
             rewardAndWeightMap);
 
-        materialBlockMap.put(oreMaterial, blockData);
+        materialBlockMap.put(oreMaterial, regenBlock);
       }
       blockMap.put(regionId, materialBlockMap);
     }

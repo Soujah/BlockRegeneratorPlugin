@@ -2,7 +2,7 @@ package me.joshuaemq.blockregenerator.managers;
 
 import java.util.HashSet;
 import java.util.Set;
-import me.joshuaemq.blockregenerator.objects.BlockData;
+import me.joshuaemq.blockregenerator.objects.RegenBlock;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,27 +10,27 @@ import org.bukkit.Material;
 
 public class BlockManager {
 
-  private final Map<String, Map<Material, BlockData>> blockMap;
+  private final Map<String, Map<Material, RegenBlock>> blockMap;
 
   public BlockManager() {
     this.blockMap = new HashMap<>();
   }
 
-  public void setBlockMap(Map<String, Map<Material, BlockData>> blockMap) {
+  public void setBlockMap(Map<String, Map<Material, RegenBlock>> blockMap) {
     this.blockMap.clear();
     this.blockMap.putAll(blockMap);
   }
 
-  public void addBlock(String region, Material material, BlockData block) {
+  public void addBlock(String region, Material material, RegenBlock block) {
     if (blockMap.containsKey(region)) {
       blockMap.get(region).put(material, block);
       return;
     }
-    Map<Material, BlockData> newData = new HashMap<>();
+    Map<Material, RegenBlock> newData = new HashMap<>();
     blockMap.put(region, newData);
   }
 
-  public BlockData getBlock(String region, Material material) {
+  public RegenBlock getBlock(String region, Material material) {
     if (!blockMap.containsKey(region)) {
       return null;
     }
