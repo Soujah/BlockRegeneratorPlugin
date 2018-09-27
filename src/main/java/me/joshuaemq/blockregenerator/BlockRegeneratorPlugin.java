@@ -1,10 +1,16 @@
 package me.joshuaemq.blockregenerator;
 
+import co.aikar.idb.DB;
+import co.aikar.idb.Database;
+import co.aikar.idb.DatabaseOptions;
+import co.aikar.idb.PooledDatabaseOptions;
 import com.tealcube.minecraft.bukkit.TextUtils;
 import com.tealcube.minecraft.bukkit.facecore.plugin.FacePlugin;
+import info.faceland.strife.StrifePlugin;
 import io.pixeloutlaw.minecraft.spigot.config.VersionedConfiguration.VersionUpdateType;
 import io.pixeloutlaw.minecraft.spigot.config.VersionedSmartYamlConfiguration;
 import java.io.File;
+import java.io.InputStream;
 import java.util.*;
 
 import me.joshuaemq.blockregenerator.commands.BaseCommand;
@@ -15,6 +21,7 @@ import me.joshuaemq.blockregenerator.managers.SQLManager;
 import me.joshuaemq.blockregenerator.objects.RegenBlock;
 import me.joshuaemq.blockregenerator.objects.MineReward;
 import me.joshuaemq.blockregenerator.tasks.BlockRespawnTask;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -37,6 +44,8 @@ public class BlockRegeneratorPlugin extends FacePlugin {
   private VersionedSmartYamlConfiguration blocksYAML;
   private VersionedSmartYamlConfiguration itemsYAML;
 
+  StrifePlugin strifePlugin;
+
   @Override
   public void enable() {
     commandHandler = new CommandHandler(this);
@@ -53,14 +62,40 @@ public class BlockRegeneratorPlugin extends FacePlugin {
         VersionUpdateType.BACKUP_AND_NEW);
 
     Bukkit.getPluginManager().registerEvents(new BlockBreakListener(this), this);
+    strifePlugin = (StrifePlugin) Bukkit.getPluginManager().getPlugin("Strife");
+
+    String username = configYAML.getString("MySQL.user");
+    String password = configYAML.getString("MySQL.password");
+    String database = configYAML.getString("MySQL.database");
+    String hostAndPort = configYAML.getString("MySQL.host") + ":" +
+        configYAML.getString("MySQL.port");
+    // configYAML.getString("MySQL.prefix")
+
+    if (StringUtils.isBlank(username)) {
+      getLogger().severe("Missing database username! Plugin will fail to work!");
+    }
+    if (StringUtils.isBlank(password)) {
+      getLogger().severe("Missing database password! Plugin will fail to work!");
+    }
+    if (StringUtils.isBlank(database)) {
+      getLogger().severe("Missing database field! Plugin will fail to work!");
+    }
+
+    DatabaseOptions options =
+        DatabaseOptions.builder().mysql(username, password, database, hostAndPort).build();
+    Database db = PooledDatabaseOptions.builder().options(options).createHikariDatabase();
+    DB.setGlobalDatabase(db);
 
     mineRewardManager = new MineRewardManager(this);
     blockManager = new BlockManager();
 
-    sqlManager = new SQLManager(configYAML);
+    sqlManager = new SQLManager();
 
     blockRespawnTask = new BlockRespawnTask(sqlManager);
-    blockRespawnTask.runTaskTimer(this, 30 * 20L, 5 * 20L);
+    blockRespawnTask.runTaskTimer(this,
+        30 * 20L, // Start after 30 seconds
+        15 * 20L  // Run every 15 seconds
+    );
 
     loadBlocks();
     loadItems();
@@ -73,13 +108,12 @@ public class BlockRegeneratorPlugin extends FacePlugin {
     HandlerList.unregisterAll(this);
 
     commandHandler = null;
-
-    sqlManager.closeConnection();
     sqlManager = null;
     mineRewardManager = null;
     blockManager = null;
 
     blockRespawnTask.cancel();
+    DB.close();
     Bukkit.getServer().getLogger().info("Block Regenerator by Joshuaemq: Disabled!");
   }
 
@@ -97,7 +131,9 @@ public class BlockRegeneratorPlugin extends FacePlugin {
       }
       String name = TextUtils.color(itemsYAML.getString(id + ".display-name", "Item"));
       List<String> lore = TextUtils.color(itemsYAML.getStringList(id + ".lore"));
+      int amount = itemsYAML.getInt(id + ".amount", 1);
       ItemStack itemStack = new ItemStack(material);
+      itemStack.setAmount(amount);
       ItemMeta meta = itemStack.getItemMeta();
       meta.setDisplayName(name);
       meta.setLore(lore);
@@ -168,4 +204,7 @@ public class BlockRegeneratorPlugin extends FacePlugin {
     return blockManager;
   }
 
+  public StrifePlugin getStrifePlugin() {
+    return strifePlugin;
+  }
 }
