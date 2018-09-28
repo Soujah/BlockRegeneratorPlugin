@@ -36,13 +36,13 @@ public class BlockBreakListener implements Listener {
     this.random = new Random();
   }
 
-  @EventHandler(priority = EventPriority.NORMAL)
+  @EventHandler(priority = EventPriority.MONITOR)
   public void onNormieBlockBreak(BlockBreakEvent event) {
     if (event.isCancelled()) {
       return;
     }
-    double strifeMiningExp = event.getExpToDrop();
-    if (strifeMiningExp < 1) {
+    double strifeMiningExp = (double) event.getExpToDrop() / 3;
+    if (strifeMiningExp <= 0) {
       return;
     }
     plugin.getStrifePlugin().getMiningExperienceManager().addExperience(
@@ -104,7 +104,7 @@ public class BlockBreakListener implements Listener {
     }
     plugin.getStrifePlugin().getMiningExperienceManager().addExperience(player,
         mineReward.getExperience(), false);
-    ItemStack minedItem = mineReward.getItemStack();
+    ItemStack minedItem = mineReward.getItemStack().clone();
     minedItem.setAmount(getAdjustedDropAmount(
         player.getEquipment().getItemInMainHand(), mineReward, effectiveMiningLevel));
     Location dropLocation = brokenBlock.getLocation().clone().add(0.5, 0.5, 0.5);

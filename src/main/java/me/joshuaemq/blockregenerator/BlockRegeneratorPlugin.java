@@ -29,6 +29,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import org.bukkit.scheduler.BukkitTask;
 import se.ranzdo.bukkit.methodcommand.CommandHandler;
 
 public class BlockRegeneratorPlugin extends FacePlugin {
@@ -39,6 +40,7 @@ public class BlockRegeneratorPlugin extends FacePlugin {
   private BlockManager blockManager;
   private SQLManager sqlManager;
   private BlockRespawnTask blockRespawnTask;
+  private BukkitTask oreRespawnTask;
 
   private VersionedSmartYamlConfiguration configYAML;
   private VersionedSmartYamlConfiguration blocksYAML;
@@ -91,11 +93,9 @@ public class BlockRegeneratorPlugin extends FacePlugin {
 
     sqlManager = new SQLManager();
 
-    blockRespawnTask = new BlockRespawnTask(sqlManager);
-    blockRespawnTask.runTaskTimer(this,
-        30 * 20L, // Start after 30 seconds
-        15 * 20L  // Run every 15 seconds
-    );
+    blockRespawnTask = new BlockRespawnTask(this);
+    oreRespawnTask = Bukkit.getScheduler().runTaskTimer(this, () ->
+        blockRespawnTask.doOreRespawn(),600L, 300L); // Start after 30s Repeat every 15s
 
     loadBlocks();
     loadItems();
@@ -112,7 +112,7 @@ public class BlockRegeneratorPlugin extends FacePlugin {
     mineRewardManager = null;
     blockManager = null;
 
-    blockRespawnTask.cancel();
+    oreRespawnTask.cancel();
     DB.close();
     Bukkit.getServer().getLogger().info("Block Regenerator by Joshuaemq: Disabled!");
   }
@@ -129,14 +129,18 @@ public class BlockRegeneratorPlugin extends FacePlugin {
         getLogger().severe("Invalid material name! Failed to load!");
         continue;
       }
-      String name = TextUtils.color(itemsYAML.getString(id + ".display-name", "Item"));
-      List<String> lore = TextUtils.color(itemsYAML.getStringList(id + ".lore"));
+      String name = itemsYAML.getString(id + ".display-name");
+      List<String> lore = itemsYAML.getStringList(id + ".lore");
       int amount = itemsYAML.getInt(id + ".amount", 1);
       ItemStack itemStack = new ItemStack(material);
       itemStack.setAmount(amount);
       ItemMeta meta = itemStack.getItemMeta();
-      meta.setDisplayName(name);
-      meta.setLore(lore);
+      if (StringUtils.isNotBlank(name)) {
+        meta.setDisplayName(TextUtils.color(name));
+      }
+      if (!lore.isEmpty()) {
+        meta.setLore(TextUtils.color(lore));
+      }
       itemStack.setItemMeta(meta);
 
       int levelRequirement = itemsYAML.getInt(id + ".level-requirement", 0);
