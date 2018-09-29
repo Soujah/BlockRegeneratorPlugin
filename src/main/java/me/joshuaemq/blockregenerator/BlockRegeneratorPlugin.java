@@ -176,7 +176,7 @@ public class BlockRegeneratorPlugin extends FacePlugin {
           getLogger().warning("Bad replacement material for " + regionId + "+" + oreType);
           replacementMaterial = Material.BEDROCK;
         }
-        int oreRespawn = oreSection.getInt(oreType + ".respawn-millis");
+        int oreRespawn = 1000 * oreSection.getInt(oreType + ".respawn-seconds");
         double exhaust = oreSection.getDouble(oreType + ".exhaust-chance");
         double lootChance = oreSection.getDouble(oreType + ".loot-chance");
 

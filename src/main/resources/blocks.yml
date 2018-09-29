@@ -5,7 +5,7 @@ spawn:
         replace-material: STONE
         exhaust-chance: 0.5
         loot-chance: 0.25
-        respawn-millis: 900000
+        respawn-seconds: 900000
         rewards:
             spawndiamondI: 50
             spawndiamondII: 10
@@ -14,7 +14,7 @@ spawn:
         replace-material: STONE
         exhaust-chance: 0.5
         loot-chance: 0.25
-        respawn-millis: 120000
+        respawn-seconds: 120000
         rewards:
             spawnironI: 50
             spawnironII: 10
