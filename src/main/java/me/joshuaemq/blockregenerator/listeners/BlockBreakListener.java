@@ -6,6 +6,7 @@ import info.faceland.strife.util.PlayerDataUtil;
 import me.joshuaemq.blockregenerator.BlockRegeneratorPlugin;
 import me.joshuaemq.blockregenerator.objects.MineReward;
 import me.joshuaemq.blockregenerator.objects.RegenBlock;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -41,6 +42,9 @@ public class BlockBreakListener implements Listener {
     if (event.isCancelled()) {
       return;
     }
+    if (event.getPlayer().getGameMode() == GameMode.CREATIVE) {
+      return;
+    }
     double strifeMiningExp = (double) event.getExpToDrop() / 3;
     if (strifeMiningExp <= 0) {
       return;
@@ -52,6 +56,9 @@ public class BlockBreakListener implements Listener {
 
   @EventHandler(priority = EventPriority.LOWEST)
   public void onSpecialBlockBreak(BlockBreakEvent event) {
+    if (event.getPlayer().getGameMode() == GameMode.CREATIVE) {
+      return;
+    }
     Player player = event.getPlayer();
     Block brokenBlock = event.getBlock();
 
@@ -86,7 +93,10 @@ public class BlockBreakListener implements Listener {
     }
 
     event.setCancelled(true);
-    player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, 30, 2));
+
+    int duration = plugin.getSettings().getInt("config.mine-fatigue-duration");
+    int level = plugin.getSettings().getInt("config.mine-fatigue-intensity", 1) - 1;
+    player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, duration, level));
 
     int miningLevel = PlayerDataUtil.getMiningLevel(player);
     int effectiveMiningLevel = PlayerDataUtil.getMineSkill(player, true);

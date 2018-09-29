@@ -4,8 +4,9 @@ version: "0.0.1"
 enable-strife-exp: false
 
 # Fatigue after successfully mining to nerf efficiency picks, in seconds. 0s to disable
+# Uses actual potion effect level, so 1 = I, 2 = II, etc
 mine-fatigue-duration: 5
-mine-fatigue-itensity: 0
+mine-fatigue-intensity: 1
 
 # DB stuffs
 MySQL:

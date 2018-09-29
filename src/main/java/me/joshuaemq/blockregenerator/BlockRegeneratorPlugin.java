@@ -7,6 +7,7 @@ import co.aikar.idb.PooledDatabaseOptions;
 import com.tealcube.minecraft.bukkit.TextUtils;
 import com.tealcube.minecraft.bukkit.facecore.plugin.FacePlugin;
 import info.faceland.strife.StrifePlugin;
+import io.pixeloutlaw.minecraft.spigot.config.MasterConfiguration;
 import io.pixeloutlaw.minecraft.spigot.config.VersionedConfiguration.VersionUpdateType;
 import io.pixeloutlaw.minecraft.spigot.config.VersionedSmartYamlConfiguration;
 import java.io.File;
@@ -34,6 +35,7 @@ import se.ranzdo.bukkit.methodcommand.CommandHandler;
 
 public class BlockRegeneratorPlugin extends FacePlugin {
 
+  private MasterConfiguration settings;
   private CommandHandler commandHandler;
 
   private MineRewardManager mineRewardManager;
@@ -71,7 +73,8 @@ public class BlockRegeneratorPlugin extends FacePlugin {
     String database = configYAML.getString("MySQL.database");
     String hostAndPort = configYAML.getString("MySQL.host") + ":" +
         configYAML.getString("MySQL.port");
-    // configYAML.getString("MySQL.prefix")
+
+    settings = MasterConfiguration.loadFromFiles(configYAML);
 
     if (StringUtils.isBlank(username)) {
       getLogger().severe("Missing database username! Plugin will fail to work!");
@@ -111,6 +114,7 @@ public class BlockRegeneratorPlugin extends FacePlugin {
     sqlManager = null;
     mineRewardManager = null;
     blockManager = null;
+    settings = null;
 
     oreRespawnTask.cancel();
     DB.close();
@@ -210,5 +214,9 @@ public class BlockRegeneratorPlugin extends FacePlugin {
 
   public StrifePlugin getStrifePlugin() {
     return strifePlugin;
+  }
+
+  public MasterConfiguration getSettings() {
+    return settings;
   }
 }
