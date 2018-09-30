@@ -40,6 +40,7 @@ spawnemerald:
     material: EMERALD
     level-requirement: 25
     display-name: '&aSpawn Emerald'
+    durability: 1
     lore:
     - '&7You can probably sell'
     - '&7this for some bits!'

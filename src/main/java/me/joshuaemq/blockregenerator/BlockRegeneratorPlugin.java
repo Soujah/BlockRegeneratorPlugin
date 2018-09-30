@@ -149,6 +149,10 @@ public class BlockRegeneratorPlugin extends FacePlugin {
 
       int levelRequirement = itemsYAML.getInt(id + ".level-requirement", 0);
       float experience = (float) itemsYAML.getDouble(id + ".experience", 0);
+      short durability = (short) itemsYAML.getInt(id + ".durability", 0);
+      if (durability > 0) {
+        itemStack.setDurability(durability);
+      }
 
       MineReward mineReward = new MineReward(itemStack, experience, levelRequirement);
 
