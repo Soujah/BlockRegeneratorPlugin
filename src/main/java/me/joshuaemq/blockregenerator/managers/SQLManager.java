@@ -2,9 +2,12 @@ package me.joshuaemq.blockregenerator.managers;
 
 import co.aikar.idb.DB;
 import co.aikar.idb.DbRow;
+import co.aikar.idb.DbStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import me.joshuaemq.blockregenerator.objects.BlockData;
 import org.intellij.lang.annotations.Language;
 
@@ -28,12 +31,13 @@ public class SQLManager {
     }
   }
 
-  public void insertBlock(String material, int x, int y, int z, String world, long respawnTime) {
+  public int insertBlock(String material, int x, int y, int z, String world, long respawnTime) {
     try {
-      DB.executeUpdateAsync(ADD_QUERY, material, respawnTime, x, y, z, world);
+      return DB.executeUpdateAsync(ADD_QUERY, material, respawnTime, x, y, z, world).get();
     } catch (Exception e) {
       e.printStackTrace();
     }
+    return 0;
   }
 
   public List<BlockData> getRespawnBlocks() {
@@ -46,6 +50,26 @@ public class SQLManager {
         if (System.currentTimeMillis() < respawnTime) {
           continue;
         }
+        BlockData blockData = new BlockData();
+        blockData.setId(row.getInt("ID"));
+        blockData.setMaterial(row.getString("material"));
+        blockData.setWorld(row.getString("world"));
+        blockData.setX(row.getInt("x"));
+        blockData.setY(row.getInt("y"));
+        blockData.setZ(row.getInt("z"));
+        list.add(blockData);
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return list;
+  }
+
+  public List<BlockData> getAllDespawnedBlocks() {
+    List<BlockData> list = new ArrayList<>();
+    try {
+      CompletableFuture<List<DbRow>> rs1 = DB.getResultsAsync(GET_ALL_QUERY);
+      for (DbRow row : rs1.get()) {
         BlockData blockData = new BlockData();
         blockData.setId(row.getInt("ID"));
         blockData.setMaterial(row.getString("material"));

@@ -11,7 +11,6 @@ import io.pixeloutlaw.minecraft.spigot.config.MasterConfiguration;
 import io.pixeloutlaw.minecraft.spigot.config.VersionedConfiguration.VersionUpdateType;
 import io.pixeloutlaw.minecraft.spigot.config.VersionedSmartYamlConfiguration;
 import java.io.File;
-import java.io.InputStream;
 import java.util.*;
 
 import me.joshuaemq.blockregenerator.commands.BaseCommand;
@@ -21,7 +20,6 @@ import me.joshuaemq.blockregenerator.managers.MineRewardManager;
 import me.joshuaemq.blockregenerator.managers.SQLManager;
 import me.joshuaemq.blockregenerator.objects.RegenBlock;
 import me.joshuaemq.blockregenerator.objects.MineReward;
-import me.joshuaemq.blockregenerator.tasks.BlockRespawnTask;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -41,7 +39,6 @@ public class BlockRegeneratorPlugin extends FacePlugin {
   private MineRewardManager mineRewardManager;
   private BlockManager blockManager;
   private SQLManager sqlManager;
-  private BlockRespawnTask blockRespawnTask;
   private BukkitTask oreRespawnTask;
 
   private VersionedSmartYamlConfiguration configYAML;
@@ -91,14 +88,13 @@ public class BlockRegeneratorPlugin extends FacePlugin {
     Database db = PooledDatabaseOptions.builder().options(options).createHikariDatabase();
     DB.setGlobalDatabase(db);
 
-    mineRewardManager = new MineRewardManager(this);
-    blockManager = new BlockManager();
-
     sqlManager = new SQLManager();
 
-    blockRespawnTask = new BlockRespawnTask(this);
+    mineRewardManager = new MineRewardManager(this);
+    blockManager = new BlockManager(this);
+
     oreRespawnTask = Bukkit.getScheduler().runTaskTimer(this, () ->
-        blockRespawnTask.doOreRespawn(),600L, 300L); // Start after 30s Repeat every 15s
+        blockManager.doOreRespawn(),600L, 300L); // Start after 30s Repeat every 15s
 
     loadBlocks();
     loadItems();

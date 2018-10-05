@@ -20,4 +20,11 @@ public class BaseCommand {
     plugin.onEnable();
     sendMessage(sender, "&aBlockRegenerator Reloaded!");
   }
+
+  @Command(identifier = "blockregen respawn", permissions = "blockregen.command.respawn", onlyPlayers = false)
+  public void respawnCommand(CommandSender sender) {
+    sendMessage(sender, "&eAttempting to respawn all ores...");
+    plugin.getBlockManager().respawnAllOres();
+    sendMessage(sender, "&aComplete!");
+  }
 }

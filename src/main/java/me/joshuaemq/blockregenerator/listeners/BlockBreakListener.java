@@ -24,6 +24,7 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import java.util.Random;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.Vector;
 
 public class BlockBreakListener implements Listener {
 
@@ -45,7 +46,12 @@ public class BlockBreakListener implements Listener {
     if (event.getPlayer().getGameMode() == GameMode.CREATIVE) {
       return;
     }
-    double strifeMiningExp = (double) event.getExpToDrop() / 3;
+    double strifeMiningExp;
+    if (event.getBlock().getType() == Material.QUARTZ_ORE) {
+      strifeMiningExp = (double) event.getExpToDrop() * 0.29;
+    } else {
+      strifeMiningExp = (double) event.getExpToDrop() * 0.38;
+    }
     if (strifeMiningExp <= 0) {
       return;
     }
@@ -112,13 +118,6 @@ public class BlockBreakListener implements Listener {
     if (mineReward.getLevelRequirement() > miningLevel) {
       return;
     }
-    plugin.getStrifePlugin().getMiningExperienceManager().addExperience(player,
-        mineReward.getExperience(), false);
-    ItemStack minedItem = mineReward.getItemStack().clone();
-    minedItem.setAmount(getAdjustedDropAmount(
-        player.getEquipment().getItemInMainHand(), mineReward, effectiveMiningLevel));
-    Location dropLocation = brokenBlock.getLocation().clone().add(0.5, 0.5, 0.5);
-    brokenBlock.getWorld().dropItemNaturally(dropLocation, minedItem);
 
     boolean depleteOre = true;
     if (player.hasPotionEffect(PotionEffectType.LUCK) && random.nextDouble() > 0.25) {
@@ -129,17 +128,31 @@ public class BlockBreakListener implements Listener {
     }
 
     if (depleteOre) {
-      brokenBlock.getLocation().getBlock().setType(regenBlock.getDepleteMaterial());
-
-      int respawnDelay = regenBlock.getRespawnTime();
-      int x = brokenBlock.getX();
-      int y = brokenBlock.getY();
-      int z = brokenBlock.getZ();
-      long currentTime = System.currentTimeMillis();
-
-      plugin.getSQLManager().insertBlock(blockMaterial.toString(), x, y, z,
-          brokenBlock.getWorld().getName(), currentTime + respawnDelay);
+      plugin.getBlockManager().insertBlock(
+          blockMaterial.toString(),
+          brokenBlock.getX(),
+          brokenBlock.getY(),
+          brokenBlock.getZ(),
+          brokenBlock.getWorld().getName(),
+          System.currentTimeMillis() + regenBlock.getRespawnTime(),
+          regenBlock.getDepleteMaterial(),
+          brokenBlock.getLocation()
+      );
     }
+
+    plugin.getStrifePlugin().getMiningExperienceManager().addExperience(player,
+        mineReward.getExperience(), false);
+    ItemStack minedItem = mineReward.getItemStack().clone();
+    minedItem.setAmount(getAdjustedDropAmount(
+        player.getEquipment().getItemInMainHand(), mineReward, effectiveMiningLevel));
+    Location dropLocation = brokenBlock.getLocation().clone().add(0.5, 0.5, 0.5);
+
+    // Offsets the spawn location based on the player's location to stop items from becoming
+    // trapped in blocks in rare cases
+    Vector playerDirectional = dropLocation.clone().subtract(player.getLocation()).toVector();
+    dropLocation.add(playerDirectional.normalize().multiply(-0.85f));
+
+    brokenBlock.getWorld().dropItemNaturally(dropLocation, minedItem);
   }
 
   private int getAdjustedDropAmount(ItemStack tool, MineReward mineReward, double effectiveLevel) {
