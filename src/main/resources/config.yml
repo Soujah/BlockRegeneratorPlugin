@@ -8,6 +8,9 @@ enable-strife-exp: false
 mine-fatigue-duration: 5
 mine-fatigue-intensity: 1
 
+# Chance that the ore will not deplete due to a player having the luck effect
+luck-no-deplete-chance: 0.2
+
 # DB stuffs
 MySQL:
   host: host

@@ -120,8 +120,11 @@ public class BlockBreakListener implements Listener {
     }
 
     boolean depleteOre = true;
-    if (player.hasPotionEffect(PotionEffectType.LUCK) && random.nextDouble() > 0.25) {
-      depleteOre = false;
+    if (player.hasPotionEffect(PotionEffectType.LUCK)) {
+      double luckyMine = plugin.getSettings().getDouble("config.luck-no-deplete-chance", 0.2);
+      if (random.nextDouble() < luckyMine) {
+        depleteOre = false;
+      }
     }
     if (random.nextDouble() > regenBlock.getExhaustChance()) {
       depleteOre = false;
