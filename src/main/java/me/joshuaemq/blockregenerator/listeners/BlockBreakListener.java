@@ -102,14 +102,16 @@ public class BlockBreakListener implements Listener {
 
     int duration = plugin.getSettings().getInt("config.mine-fatigue-duration");
     int level = plugin.getSettings().getInt("config.mine-fatigue-intensity", 1) - 1;
+
+    player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
     player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, duration, level));
 
     int miningLevel = PlayerDataUtil.getMiningLevel(player);
     int effectiveMiningLevel = PlayerDataUtil.getMineSkill(player, true);
-    double lootChanceMultiplier = 1 + ((double) effectiveMiningLevel / 30);
+    double bonusSuccess = plugin.getSettings().getDouble("config.bonus-success-per-level", 0);
+    double lootChanceMultiplier = 1 + ((double) effectiveMiningLevel * bonusSuccess);
 
-    double lootDropChance = regenBlock.getLootChance();
-    if (lootDropChance * lootChanceMultiplier < random.nextDouble()) {
+    if (random.nextDouble() * lootChanceMultiplier < 1D - regenBlock.getLootChance()) {
       return;
     }
 

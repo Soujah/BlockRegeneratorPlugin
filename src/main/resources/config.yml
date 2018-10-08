@@ -11,6 +11,9 @@ mine-fatigue-intensity: 1
 # Chance that the ore will not deplete due to a player having the luck effect
 luck-no-deplete-chance: 0.2
 
+# Multiplier applied to your roll for mining success gained per level
+bonus-success-per-level: 0.01
+
 # DB stuffs
 MySQL:
   host: host
