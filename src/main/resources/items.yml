@@ -1,0 +1,46 @@
+version: "0.0.1"
+
+spawndiamondI:
+    material: DIAMOND
+    level-requirement: 25
+    display-name: '&9Spawn Diamond'
+    lore:
+    - '&fItem Level: 8'
+    - '&fQuality: &9✪✪'
+    - '&7A diamond mined at spawn!'
+    - '&e[ Crafting Component ]'
+spawndiamondII:
+    material: DIAMOND
+    level-requirement: 25
+    display-name: '&5Spawn Diamond'
+    lore:
+    - '&fItem Level: 8'
+    - '&fQuality: &5✪✪✪'
+    - '&7A diamond mined at spawn!'
+    - '&e[ Crafting Component ]'
+spawnironI:
+    material: IRON_INGOT
+    level-requirement: 25
+    display-name: '&9Spawn Iron'
+    lore:
+    - '&fItem Level: 8'
+    - '&fQuality: &9✪✪'
+    - '&7Some iron mined at spawn!'
+    - '&e[ Crafting Component ]'
+spawnironII:
+    material: IRON_INGOT
+    level-requirement: 25
+    display-name: '&5Spawn Iron'
+    lore:
+    - '&fItem Level: 8'
+    - '&fQuality: &5✪✪✪'
+    - '&7Some iron mined at spawn!'
+    - '&e[ Crafting Component ]'
+spawnemerald:
+    material: EMERALD
+    level-requirement: 25
+    display-name: '&aSpawn Emerald'
+    durability: 1
+    lore:
+    - '&7You can probably sell'
+    - '&7this for some bits!'

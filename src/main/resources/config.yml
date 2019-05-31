@@ -1,0 +1,24 @@
+version: "0.0.1"
+
+# When enabled, grant xp as strife skill xp instead of orbs
+enable-strife-exp: false
+
+# Fatigue after successfully mining to nerf efficiency picks, in seconds. 0s to disable
+# Uses actual potion effect level, so 1 = I, 2 = II, etc
+mine-fatigue-duration: 5
+mine-fatigue-intensity: 1
+
+# Chance that the ore will not deplete due to a player having the luck effect
+luck-no-deplete-chance: 0.2
+
+# Multiplier applied to your roll for mining success gained per level
+bonus-success-per-level: 0.01
+
+# DB stuffs
+MySQL:
+  host: host
+  user: meme
+  password: dank
+  database: minecraft
+  port: 3306
+  prefix: ms_

@@ -1,0 +1,21 @@
+version: "0.0.1"
+
+spawn:
+    DIAMOND_ORE:
+        replace-material: STONE
+        exhaust-chance: 0.5
+        loot-chance: 0.25
+        respawn-seconds: 900000
+        rewards:
+            spawndiamondI: 50
+            spawndiamondII: 10
+            spawnemerald: 10
+    IRON_ORE:
+        replace-material: STONE
+        exhaust-chance: 0.5
+        loot-chance: 0.25
+        respawn-seconds: 120000
+        rewards:
+            spawnironI: 50
+            spawnironII: 10
+            spawnemerald: 10

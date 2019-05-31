@@ -1,0 +1,14 @@
+name: BlockRegenerator
+main: me.joshuaemq.blockregenerator.BlockRegeneratorPlugin
+version: ${project.version}
+description: RegenerateBlocks
+depend: [Facecore]
+softdepend: [WorldGuard, WorldEdit]
+
+commands:
+  blockregen:
+    aliases: [br]
+
+permissions:
+  blockregen.command.reload:
+    default: op
