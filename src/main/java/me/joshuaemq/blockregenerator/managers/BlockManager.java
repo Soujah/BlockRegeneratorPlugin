@@ -25,12 +25,10 @@ public class BlockManager {
   }
 
   public interface BlockActionCallback {
-
     List<BlockData> onGetBlocksComplete();
   }
 
   public interface InsertActionCallback {
-
     Integer onInsertComplete();
   }
 

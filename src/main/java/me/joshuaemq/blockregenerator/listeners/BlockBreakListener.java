@@ -47,7 +47,7 @@ public class BlockBreakListener implements Listener {
       return;
     }
     double strifeMiningExp;
-    if (event.getBlock().getType() == Material.QUARTZ_ORE) {
+    if (event.getBlock().getType() == Material.NETHER_QUARTZ_ORE) {
       strifeMiningExp = (double) event.getExpToDrop() * 0.29;
     } else {
       strifeMiningExp = (double) event.getExpToDrop() * 0.38;

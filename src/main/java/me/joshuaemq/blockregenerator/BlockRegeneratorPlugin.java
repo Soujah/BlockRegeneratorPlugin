@@ -93,8 +93,8 @@ public class BlockRegeneratorPlugin extends FacePlugin {
     mineRewardManager = new MineRewardManager(this);
     blockManager = new BlockManager(this);
 
-    oreRespawnTask = Bukkit.getScheduler().runTaskTimer(this, () ->
-        blockManager.doOreRespawn(),600L, 300L); // Start after 30s Repeat every 15s
+    oreRespawnTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this, () ->
+        blockManager.doOreRespawn(),20L * 30, 20L * 15); // Start after 30s Repeat every 15s
 
     loadBlocks();
     loadItems();
