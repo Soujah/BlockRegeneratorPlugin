@@ -16,12 +16,12 @@ public class SQLManager {
   // "CREATE TABLE IF NOT EXISTS `ms_blocks` (`ID` INT NOT NULL AUTO_INCREMENT, `material` varchar(100), `respawntime` LONG, `x` INT, `y` INT, `z` INT, `world` VARCHAR(255), PRIMARY KEY (`ID`))";
 
   @Language("MySQL")
-  private static final String GET_ALL_QUERY = "SELECT * FROM ms_blocks";
+  private static final String GET_ALL_QUERY = "SELECT * FROM br_regenBlocks";
   @Language("MySQL")
-  private static final String REMOVE_QUERY = "DELETE FROM ms_blocks WHERE ID = ?";
+  private static final String REMOVE_QUERY = "DELETE FROM br_regenBlocks WHERE ID = ?";
   @Language("MySQL")
   private static final String ADD_QUERY =
-      "INSERT INTO ms_blocks (material, respawntime, x, y, z, world) VALUES (?,?,?,?,?,?)";
+      "INSERT INTO br_regenBlocks (material, respawntime, x, y, z, world) VALUES (?,?,?,?,?,?)";
 
   public void removeItem(int id) {
     try {

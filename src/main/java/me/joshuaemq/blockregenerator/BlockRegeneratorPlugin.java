@@ -6,13 +6,14 @@ import co.aikar.idb.DatabaseOptions;
 import co.aikar.idb.PooledDatabaseOptions;
 import com.tealcube.minecraft.bukkit.TextUtils;
 import com.tealcube.minecraft.bukkit.facecore.plugin.FacePlugin;
-import info.faceland.strife.StrifePlugin;
+import com.tealcube.minecraft.bukkit.shade.apache.commons.lang3.StringUtils;
 import io.pixeloutlaw.minecraft.spigot.config.MasterConfiguration;
 import io.pixeloutlaw.minecraft.spigot.config.VersionedConfiguration.VersionUpdateType;
 import io.pixeloutlaw.minecraft.spigot.config.VersionedSmartYamlConfiguration;
 import java.io.File;
 import java.util.*;
 
+import land.face.strife.StrifePlugin;
 import me.joshuaemq.blockregenerator.commands.BaseCommand;
 import me.joshuaemq.blockregenerator.listeners.BlockBreakListener;
 import me.joshuaemq.blockregenerator.managers.BlockManager;
@@ -20,7 +21,6 @@ import me.joshuaemq.blockregenerator.managers.MineRewardManager;
 import me.joshuaemq.blockregenerator.managers.SQLManager;
 import me.joshuaemq.blockregenerator.objects.RegenBlock;
 import me.joshuaemq.blockregenerator.objects.MineReward;
-import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -122,11 +122,12 @@ public class BlockRegeneratorPlugin extends FacePlugin {
       if (!itemsYAML.isConfigurationSection(id)) {
         continue;
       }
+      String matString = itemsYAML.getString(id + ".material");
       Material material;
       try {
         material = Material.valueOf(itemsYAML.getString(id + ".material"));
       } catch (Exception e) {
-        getLogger().severe("Invalid material name! Failed to load!");
+        getLogger().severe("Invalid material name: " + matString + " for " + id + "! Skipping...");
         continue;
       }
       String name = itemsYAML.getString(id + ".display-name");
