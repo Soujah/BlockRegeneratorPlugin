@@ -2,8 +2,9 @@ name: BlockRegenerator
 main: me.joshuaemq.blockregenerator.BlockRegeneratorPlugin
 version: ${project.version}
 description: RegenerateBlocks
+api-version: 1.15
 depend: [Facecore]
-softdepend: [WorldGuard, WorldEdit]
+softdepend: [WorldGuard, WorldEdit, Strife]
 
 commands:
   blockregen:
