@@ -146,6 +146,7 @@ public class BlockBreakListener implements Listener {
     }
 
     RegenOreMinedEvent oreEvent = new RegenOreMinedEvent();
+    oreEvent.setPlayer(player);
     oreEvent.setRewardId(reward);
     oreEvent.setMinedMaterial(event.getBlock().getType());
     oreEvent.setRegionId(region.getId());
