@@ -5,41 +5,39 @@ import org.bukkit.entity.Player;
 
 public class RegenOreMinedEvent extends CancellableEvent {
 
-  private Player player;
-  private String rewardId;
-  private String regionId;
-  private Material minedMaterial;
+  private final Player player;
+  private final String rewardId;
+  private final String blockId;
+  private final String regionId;
+  private final Material minedMaterial;
+
+  public RegenOreMinedEvent(Player player, String rewardId, String blockId, String regionId,
+      Material minedMaterial) {
+    this.player = player;
+    this.rewardId = rewardId;
+    this.blockId = blockId;
+    this.regionId = regionId;
+    this.minedMaterial = minedMaterial;
+  }
 
   public Player getPlayer() {
     return player;
-  }
-
-  public void setPlayer(Player player) {
-    this.player = player;
   }
 
   public String getRewardId() {
     return rewardId;
   }
 
-  public void setRewardId(String rewardId) {
-    this.rewardId = rewardId;
+  public String getBlockId() {
+    return blockId;
   }
 
   public String getRegionId() {
     return regionId;
   }
 
-  public void setRegionId(String regionId) {
-    this.regionId = regionId;
-  }
-
   public Material getMinedMaterial() {
     return minedMaterial;
-  }
-
-  public void setMinedMaterial(Material minedMaterial) {
-    this.minedMaterial = minedMaterial;
   }
 
 }
