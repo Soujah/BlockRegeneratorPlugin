@@ -8,6 +8,7 @@ import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.internal.platform.StringMatcher;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
+import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import land.face.strife.data.champion.LifeSkillType;
 import land.face.strife.util.PlayerDataUtil;
 import me.joshuaemq.blockregenerator.BlockRegeneratorPlugin;
@@ -128,7 +129,7 @@ public class BlockBreakListener implements Listener {
       return;
     }
 
-    String reward = regenBlock.getRandomReward();
+    String reward = RegenBlock.getRandomReward(regenBlock);
     MineReward mineReward = plugin.getMineRewardManager().getReward(reward);
     if (mineReward.getLevelRequirement() > miningLevel) {
       return;
@@ -145,11 +146,15 @@ public class BlockBreakListener implements Listener {
       depleteOre = false;
     }
 
-    RegenOreMinedEvent oreEvent = new RegenOreMinedEvent();
-    oreEvent.setPlayer(player);
-    oreEvent.setRewardId(reward);
-    oreEvent.setMinedMaterial(event.getBlock().getType());
-    oreEvent.setRegionId(region.getId());
+    if (player.hasPermission("blockregen.inspect")) {
+      MessageUtils.sendMessage(player, "BlockRegen Details:");
+      MessageUtils.sendMessage(player, " OreID: " + regenBlock.getId());
+      MessageUtils.sendMessage(player, " RewardID: " + reward);
+      MessageUtils.sendMessage(player, " RegionID: " + region.getId());
+    }
+
+    RegenOreMinedEvent oreEvent = new RegenOreMinedEvent(player, reward, regenBlock.getId(),
+        region.getId(), blockMaterial);
     Bukkit.getPluginManager().callEvent(oreEvent);
 
     if (oreEvent.isCancelled()) {
