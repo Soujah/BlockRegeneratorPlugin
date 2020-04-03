@@ -7,21 +7,27 @@ import java.util.Random;
 
 public class RegenBlock {
 
-  private final Random random;
+  private final String id;
   private final double exhaustChance;
   private final double lootChance;
   private final Material depleteMaterial;
   private final int respawnTime;
   private final Map<String, Double> rewardMap;
 
-  public RegenBlock(double exhaustChance, double lootChance, Material depleteMaterial,
+  private static final Random random = new Random();
+
+  public RegenBlock(String id, double exhaustChance, double lootChance, Material depleteMaterial,
       int respawnTime, Map<String, Double> rewardMap) {
-    this.random = new Random();
+    this.id = id;
     this.exhaustChance = exhaustChance;
     this.lootChance = lootChance;
     this.depleteMaterial = depleteMaterial;
     this.respawnTime = respawnTime;
     this.rewardMap = rewardMap;
+  }
+
+  public String getId() {
+    return id;
   }
 
   public double getExhaustChance() {
@@ -40,19 +46,15 @@ public class RegenBlock {
     return respawnTime;
   }
 
-  public Map<String, Double> getRewardMap() {
-    return rewardMap;
-  }
-
-  public String getRandomReward() {
+  public static String getRandomReward(RegenBlock block) {
     double weightTotal = 0;
-    for (double rewardWeight : this.getRewardMap().values()) {
+    for (double rewardWeight : block.rewardMap.values()) {
       weightTotal += rewardWeight;
     }
     double targetWeight = random.nextDouble() * weightTotal;
     while (targetWeight > 0) {
-      for (String reward : rewardMap.keySet()) {
-        targetWeight -= rewardMap.get(reward);
+      for (String reward : block.rewardMap.keySet()) {
+        targetWeight -= block.rewardMap.get(reward);
         if (targetWeight < 0) {
           return reward;
         }

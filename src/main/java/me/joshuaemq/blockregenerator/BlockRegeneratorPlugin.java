@@ -191,8 +191,15 @@ public class BlockRegeneratorPlugin extends FacePlugin {
         for (String rewardName : rewardSection.getKeys(false)) {
           rewardAndWeightMap.put(rewardName, rewardSection.getDouble(rewardName));
         }
-        RegenBlock regenBlock = new RegenBlock(exhaust, lootChance, replacementMaterial, oreRespawn,
-            rewardAndWeightMap);
+
+        RegenBlock regenBlock = new RegenBlock(
+            regionId + "|" + oreType,
+            exhaust,
+            lootChance,
+            replacementMaterial,
+            oreRespawn,
+            rewardAndWeightMap
+        );
 
         materialBlockMap.put(oreMaterial, regenBlock);
       }
