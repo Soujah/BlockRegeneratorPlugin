@@ -21,4 +21,3 @@ MySQL:
   password: dank
   database: minecraft
   port: 3306
-  prefix: ms_

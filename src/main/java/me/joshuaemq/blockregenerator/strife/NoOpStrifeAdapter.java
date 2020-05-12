@@ -7,4 +7,14 @@ public class NoOpStrifeAdapter extends StrifeAdapter {
     public void addMiningExperience(Player player, double amount, boolean exact) {
         // do nothing
     }
+
+    @Override
+    public int getMiningSkillLevel(Player player) {
+        return 0;
+    }
+
+    @Override
+    public double getEffectiveMiningSkillLevel(Player player) {
+        return 0;
+    }
 }

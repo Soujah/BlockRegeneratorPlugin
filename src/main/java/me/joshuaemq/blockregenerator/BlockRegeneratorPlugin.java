@@ -54,16 +54,19 @@ public class BlockRegeneratorPlugin extends FacePlugin {
             new File(getDataFolder(), "config.yml"),
             getResource("config.yml"),
             VersionUpdateType.BACKUP_AND_NEW);
+    configYAML.update();
     blocksYAML =
         new VersionedSmartYamlConfiguration(
             new File(getDataFolder(), "blocks.yml"),
             getResource("blocks.yml"),
             VersionUpdateType.BACKUP_AND_NEW);
+    blocksYAML.update();
     itemsYAML =
         new VersionedSmartYamlConfiguration(
             new File(getDataFolder(), "items.yml"),
             getResource("items.yml"),
             VersionUpdateType.BACKUP_AND_NEW);
+    itemsYAML.update();
 
     Bukkit.getPluginManager().registerEvents(new BlockBreakListener(this), this);
 
@@ -97,6 +100,7 @@ public class BlockRegeneratorPlugin extends FacePlugin {
     DB.setGlobalDatabase(db);
 
     sqlManager = new SQLManager();
+    sqlManager.initialize();
 
     mineRewardManager = new MineRewardManager(this);
     blockManager = new BlockManager(this);
@@ -104,8 +108,8 @@ public class BlockRegeneratorPlugin extends FacePlugin {
     oreRespawnTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this, () ->
         blockManager.doOreRespawn(),20L * 30, 20L * 15); // Start after 30s Repeat every 15s
 
-    loadBlocks();
     loadItems();
+    loadBlocks();
 
     Bukkit.getServer().getLogger().info("Block Regenerator by Joshuaemq: Enabled!");
   }

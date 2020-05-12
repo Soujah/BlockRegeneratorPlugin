@@ -12,8 +12,6 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
 import java.util.Random;
-import land.face.strife.data.champion.LifeSkillType;
-import land.face.strife.util.PlayerDataUtil;
 import me.joshuaemq.blockregenerator.BlockRegeneratorPlugin;
 import me.joshuaemq.blockregenerator.events.RegenOreMinedEvent;
 import me.joshuaemq.blockregenerator.objects.MineReward;
@@ -116,9 +114,8 @@ public class BlockBreakListener implements Listener {
     player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
     player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, duration, level));
 
-    int miningLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.MINING);
-    double effectiveMiningLevel =
-        PlayerDataUtil.getEffectiveLifeSkill(player, LifeSkillType.MINING, true);
+    int miningLevel = StrifeAdapter.getAdapter().getMiningSkillLevel(player);
+    double effectiveMiningLevel = StrifeAdapter.getAdapter().getEffectiveMiningSkillLevel(player);
     double bonusSuccess = plugin.getSettings().getDouble("config.bonus-success-per-level", 0);
     double lootChanceMultiplier = 1 + (effectiveMiningLevel * bonusSuccess);
 
@@ -148,6 +145,7 @@ public class BlockBreakListener implements Listener {
       MessageUtils.sendMessage(player, " OreID: " + regenBlock.getId());
       MessageUtils.sendMessage(player, " RewardID: " + reward);
       MessageUtils.sendMessage(player, " RegionID: " + region.getId());
+      MessageUtils.sendMessage(player, " Depleting: " + depleteOre);
     }
 
     RegenOreMinedEvent oreEvent =

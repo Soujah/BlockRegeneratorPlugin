@@ -20,4 +20,8 @@ public abstract class StrifeAdapter {
     }
 
     public abstract void addMiningExperience(Player player, double amount, boolean exact);
+
+    public abstract int getMiningSkillLevel(Player player);
+
+    public abstract double getEffectiveMiningSkillLevel(Player player);
 }
