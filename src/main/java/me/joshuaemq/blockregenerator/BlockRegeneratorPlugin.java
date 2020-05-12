@@ -11,23 +11,23 @@ import io.pixeloutlaw.minecraft.spigot.config.MasterConfiguration;
 import io.pixeloutlaw.minecraft.spigot.config.VersionedConfiguration.VersionUpdateType;
 import io.pixeloutlaw.minecraft.spigot.config.VersionedSmartYamlConfiguration;
 import java.io.File;
-import java.util.*;
-
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import land.face.strife.StrifePlugin;
 import me.joshuaemq.blockregenerator.commands.BaseCommand;
 import me.joshuaemq.blockregenerator.listeners.BlockBreakListener;
 import me.joshuaemq.blockregenerator.managers.BlockManager;
 import me.joshuaemq.blockregenerator.managers.MineRewardManager;
 import me.joshuaemq.blockregenerator.managers.SQLManager;
-import me.joshuaemq.blockregenerator.objects.RegenBlock;
 import me.joshuaemq.blockregenerator.objects.MineReward;
+import me.joshuaemq.blockregenerator.objects.RegenBlock;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-
 import org.bukkit.scheduler.BukkitTask;
 import se.ranzdo.bukkit.methodcommand.CommandHandler;
 
@@ -52,15 +52,21 @@ public class BlockRegeneratorPlugin extends FacePlugin {
     commandHandler = new CommandHandler(this);
     commandHandler.registerCommands(new BaseCommand(this));
 
-    configYAML = new VersionedSmartYamlConfiguration(new File(getDataFolder(), "config.yml"),
-        getResource("config.yml"),
-        VersionUpdateType.BACKUP_AND_NEW);
-    blocksYAML = new VersionedSmartYamlConfiguration(new File(getDataFolder(), "blocks.yml"),
-        getResource("blocks.yml"),
-        VersionUpdateType.BACKUP_AND_NEW);
-    itemsYAML = new VersionedSmartYamlConfiguration(new File(getDataFolder(), "items.yml"),
-        getResource("items.yml"),
-        VersionUpdateType.BACKUP_AND_NEW);
+    configYAML =
+        new VersionedSmartYamlConfiguration(
+            new File(getDataFolder(), "config.yml"),
+            getResource("config.yml"),
+            VersionUpdateType.BACKUP_AND_NEW);
+    blocksYAML =
+        new VersionedSmartYamlConfiguration(
+            new File(getDataFolder(), "blocks.yml"),
+            getResource("blocks.yml"),
+            VersionUpdateType.BACKUP_AND_NEW);
+    itemsYAML =
+        new VersionedSmartYamlConfiguration(
+            new File(getDataFolder(), "items.yml"),
+            getResource("items.yml"),
+            VersionUpdateType.BACKUP_AND_NEW);
 
     Bukkit.getPluginManager().registerEvents(new BlockBreakListener(this), this);
     strifePlugin = (StrifePlugin) Bukkit.getPluginManager().getPlugin("Strife");
@@ -68,8 +74,8 @@ public class BlockRegeneratorPlugin extends FacePlugin {
     String username = configYAML.getString("MySQL.user");
     String password = configYAML.getString("MySQL.password");
     String database = configYAML.getString("MySQL.database");
-    String hostAndPort = configYAML.getString("MySQL.host") + ":" +
-        configYAML.getString("MySQL.port");
+    String hostAndPort =
+        configYAML.getString("MySQL.host") + ":" + configYAML.getString("MySQL.port");
 
     settings = MasterConfiguration.loadFromFiles(configYAML);
 
@@ -112,13 +118,14 @@ public class BlockRegeneratorPlugin extends FacePlugin {
   public void disable() {
     HandlerList.unregisterAll(this);
 
+    oreRespawnTask.cancel();
+
     commandHandler = null;
     sqlManager = null;
     mineRewardManager = null;
     blockManager = null;
     settings = null;
 
-    oreRespawnTask.cancel();
     DB.close();
     Bukkit.getServer().getLogger().info("Block Regenerator by Joshuaemq: Disabled!");
   }
@@ -191,21 +198,21 @@ public class BlockRegeneratorPlugin extends FacePlugin {
         double exhaust = oreSection.getDouble(oreType + ".exhaust-chance");
         double lootChance = oreSection.getDouble(oreType + ".loot-chance");
 
-        ConfigurationSection rewardSection = oreSection
-            .getConfigurationSection(oreType + ".rewards");
+        ConfigurationSection rewardSection =
+            oreSection.getConfigurationSection(oreType + ".rewards");
         Map<String, Double> rewardAndWeightMap = new HashMap<>();
         for (String rewardName : rewardSection.getKeys(false)) {
           rewardAndWeightMap.put(rewardName, rewardSection.getDouble(rewardName));
         }
 
-        RegenBlock regenBlock = new RegenBlock(
-            regionId + "|" + oreType,
-            exhaust,
-            lootChance,
-            replacementMaterial,
-            oreRespawn,
-            rewardAndWeightMap
-        );
+        RegenBlock regenBlock =
+            new RegenBlock(
+                regionId + "|" + oreType,
+                exhaust,
+                lootChance,
+                replacementMaterial,
+                oreRespawn,
+                rewardAndWeightMap);
 
         materialBlockMap.put(oreMaterial, regenBlock);
       }

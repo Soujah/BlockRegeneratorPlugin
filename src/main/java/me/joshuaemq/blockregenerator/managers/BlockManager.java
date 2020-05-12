@@ -1,14 +1,13 @@
 package me.joshuaemq.blockregenerator.managers;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import me.joshuaemq.blockregenerator.BlockRegeneratorPlugin;
 import me.joshuaemq.blockregenerator.objects.BlockData;
 import me.joshuaemq.blockregenerator.objects.RegenBlock;
-
-import java.util.HashMap;
-import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -24,34 +23,44 @@ public class BlockManager {
     this.blockMap = new HashMap<>();
   }
 
-  public interface BlockActionCallback {
-    List<BlockData> onGetBlocksComplete();
-  }
-
-  public interface InsertActionCallback {
-    Integer onInsertComplete();
-  }
-
   public void doOreRespawn() {
-    Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-      BlockActionCallback callback = () -> plugin.getSQLManager().getRespawnBlocks();
-      Bukkit.getScheduler().runTask(plugin, () -> placeBlocks(callback.onGetBlocksComplete()));
-    });
+    Bukkit.getScheduler()
+        .runTaskAsynchronously(
+            plugin,
+            () -> {
+              List<BlockData> blocksToRespawn = plugin.getSQLManager().getRespawnBlocks();
+              Bukkit.getScheduler().runTask(plugin, () -> placeBlocks(blocksToRespawn));
+            });
   }
 
   public void respawnAllOres() {
-    Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-      BlockActionCallback callback = () -> plugin.getSQLManager().getAllDespawnedBlocks();
-      Bukkit.getScheduler().runTask(plugin, () -> placeBlocks(callback.onGetBlocksComplete()));
-    });
+    Bukkit.getScheduler()
+        .runTaskAsynchronously(
+            plugin,
+            () -> {
+              List<BlockData> blocksToRespawn = plugin.getSQLManager().getAllDespawnedBlocks();
+              Bukkit.getScheduler().runTask(plugin, () -> placeBlocks(blocksToRespawn));
+            });
   }
 
-  public void insertBlock(String material, int x, int y, int z, String world, long respawnTime,
-      Material depleteMaterial, Location depleteLocation) {
-    Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-      InsertActionCallback callback = () -> plugin.getSQLManager().insertBlock(material, x, y, z, world, respawnTime);
-      Bukkit.getScheduler().runTask(plugin, () -> depleteBlock(callback.onInsertComplete(), depleteLocation, depleteMaterial));
-    });
+  public void insertBlock(
+      String material,
+      int x,
+      int y,
+      int z,
+      String world,
+      long respawnTime,
+      Material depleteMaterial,
+      Location depleteLocation) {
+    Bukkit.getScheduler()
+        .runTaskAsynchronously(
+            plugin,
+            () -> {
+              int blockId =
+                  plugin.getSQLManager().insertBlock(material, x, y, z, world, respawnTime);
+              Bukkit.getScheduler()
+                  .runTask(plugin, () -> depleteBlock(blockId, depleteLocation, depleteMaterial));
+            });
   }
 
   private void placeBlocks(List<BlockData> blockDataList) {
@@ -76,15 +85,6 @@ public class BlockManager {
   public void setBlockMap(Map<String, Map<Material, RegenBlock>> blockMap) {
     this.blockMap.clear();
     this.blockMap.putAll(blockMap);
-  }
-
-  public void addBlock(String region, Material material, RegenBlock block) {
-    if (blockMap.containsKey(region)) {
-      blockMap.get(region).put(material, block);
-      return;
-    }
-    Map<Material, RegenBlock> newData = new HashMap<>();
-    blockMap.put(region, newData);
   }
 
   public RegenBlock getBlock(String region, Material material) {
