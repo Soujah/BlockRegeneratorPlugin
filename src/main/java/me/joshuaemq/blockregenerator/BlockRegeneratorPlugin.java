@@ -14,7 +14,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import land.face.strife.StrifePlugin;
 import me.joshuaemq.blockregenerator.commands.BaseCommand;
 import me.joshuaemq.blockregenerator.listeners.BlockBreakListener;
 import me.joshuaemq.blockregenerator.managers.BlockManager;
@@ -45,8 +44,6 @@ public class BlockRegeneratorPlugin extends FacePlugin {
   private VersionedSmartYamlConfiguration blocksYAML;
   private VersionedSmartYamlConfiguration itemsYAML;
 
-  StrifePlugin strifePlugin;
-
   @Override
   public void enable() {
     commandHandler = new CommandHandler(this);
@@ -69,7 +66,6 @@ public class BlockRegeneratorPlugin extends FacePlugin {
             VersionUpdateType.BACKUP_AND_NEW);
 
     Bukkit.getPluginManager().registerEvents(new BlockBreakListener(this), this);
-    strifePlugin = (StrifePlugin) Bukkit.getPluginManager().getPlugin("Strife");
 
     String username = configYAML.getString("MySQL.user");
     String password = configYAML.getString("MySQL.password");
@@ -118,7 +114,9 @@ public class BlockRegeneratorPlugin extends FacePlugin {
   public void disable() {
     HandlerList.unregisterAll(this);
 
-    oreRespawnTask.cancel();
+    if (oreRespawnTask != null) {
+      oreRespawnTask.cancel();
+    }
 
     commandHandler = null;
     sqlManager = null;
@@ -231,10 +229,6 @@ public class BlockRegeneratorPlugin extends FacePlugin {
 
   public BlockManager getBlockManager() {
     return blockManager;
-  }
-
-  public StrifePlugin getStrifePlugin() {
-    return strifePlugin;
   }
 
   public MasterConfiguration getSettings() {

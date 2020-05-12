@@ -46,13 +46,13 @@
     <dependency>
       <groupId>io.pixeloutlaw</groupId>
       <artifactId>strife</artifactId>
-      <version>3.0.4</version>
+      <version>3.0.7</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.sk89q.worldguard</groupId>
       <artifactId>worldguard-bukkit</artifactId>
-      <version>7.0.1-SNAPSHOT</version>
+      <version>7.0.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

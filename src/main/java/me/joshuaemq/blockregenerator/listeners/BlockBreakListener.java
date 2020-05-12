@@ -6,15 +6,19 @@ import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.internal.platform.StringMatcher;
+import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.tealcube.minecraft.bukkit.facecore.utilities.MessageUtils;
+import java.util.Random;
 import land.face.strife.data.champion.LifeSkillType;
 import land.face.strife.util.PlayerDataUtil;
 import me.joshuaemq.blockregenerator.BlockRegeneratorPlugin;
 import me.joshuaemq.blockregenerator.events.RegenOreMinedEvent;
 import me.joshuaemq.blockregenerator.objects.MineReward;
 import me.joshuaemq.blockregenerator.objects.RegenBlock;
+import me.joshuaemq.blockregenerator.strife.StrifeAdapter;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -27,11 +31,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
-
-import com.sk89q.worldguard.protection.ApplicableRegionSet;
-import com.sk89q.worldguard.protection.regions.ProtectedRegion;
-
-import java.util.Random;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -40,10 +39,9 @@ public class BlockBreakListener implements Listener {
   private final BlockRegeneratorPlugin plugin;
   private final Random random;
 
-  private RegionContainer regionContainer = WorldGuard.getInstance().getPlatform()
-      .getRegionContainer();
+  private RegionContainer regionContainer =
+      WorldGuard.getInstance().getPlatform().getRegionContainer();
   private StringMatcher stringMatcher = WorldGuard.getInstance().getPlatform().getMatcher();
-
 
   public BlockBreakListener(BlockRegeneratorPlugin plugin) {
     this.plugin = plugin;
@@ -67,8 +65,7 @@ public class BlockBreakListener implements Listener {
     if (strifeMiningExp <= 0) {
       return;
     }
-    plugin.getStrifePlugin().getSkillExperienceManager().addExperience(event.getPlayer(),
-        LifeSkillType.MINING, strifeMiningExp, false);
+    StrifeAdapter.getAdapter().addMiningExperience(event.getPlayer(), strifeMiningExp, false);
     event.setExpToDrop(0);
   }
 
@@ -120,8 +117,8 @@ public class BlockBreakListener implements Listener {
     player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, duration, level));
 
     int miningLevel = PlayerDataUtil.getLifeSkillLevel(player, LifeSkillType.MINING);
-    double effectiveMiningLevel = PlayerDataUtil
-        .getEffectiveLifeSkill(player, LifeSkillType.MINING, true);
+    double effectiveMiningLevel =
+        PlayerDataUtil.getEffectiveLifeSkill(player, LifeSkillType.MINING, true);
     double bonusSuccess = plugin.getSettings().getDouble("config.bonus-success-per-level", 0);
     double lootChanceMultiplier = 1 + (effectiveMiningLevel * bonusSuccess);
 
@@ -153,8 +150,8 @@ public class BlockBreakListener implements Listener {
       MessageUtils.sendMessage(player, " RegionID: " + region.getId());
     }
 
-    RegenOreMinedEvent oreEvent = new RegenOreMinedEvent(player, reward, regenBlock.getId(),
-        region.getId(), blockMaterial);
+    RegenOreMinedEvent oreEvent =
+        new RegenOreMinedEvent(player, reward, regenBlock.getId(), region.getId(), blockMaterial);
     Bukkit.getPluginManager().callEvent(oreEvent);
 
     if (oreEvent.isCancelled()) {
@@ -162,23 +159,24 @@ public class BlockBreakListener implements Listener {
     }
 
     if (depleteOre) {
-      plugin.getBlockManager().insertBlock(
-          blockMaterial.toString(),
-          brokenBlock.getX(),
-          brokenBlock.getY(),
-          brokenBlock.getZ(),
-          brokenBlock.getWorld().getName(),
-          System.currentTimeMillis() + regenBlock.getRespawnTime(),
-          regenBlock.getDepleteMaterial(),
-          brokenBlock.getLocation()
-      );
+      plugin
+          .getBlockManager()
+          .insertBlock(
+              blockMaterial.toString(),
+              brokenBlock.getX(),
+              brokenBlock.getY(),
+              brokenBlock.getZ(),
+              brokenBlock.getWorld().getName(),
+              System.currentTimeMillis() + regenBlock.getRespawnTime(),
+              regenBlock.getDepleteMaterial(),
+              brokenBlock.getLocation());
     }
 
-    plugin.getStrifePlugin().getSkillExperienceManager().addExperience(player, LifeSkillType.MINING,
-        mineReward.getExperience(), false);
+    StrifeAdapter.getAdapter().addMiningExperience(player, mineReward.getExperience(), false);
     ItemStack minedItem = mineReward.getItemStack().clone();
-    minedItem.setAmount(getAdjustedDropAmount(
-        player.getEquipment().getItemInMainHand(), mineReward, effectiveMiningLevel));
+    minedItem.setAmount(
+        getAdjustedDropAmount(
+            player.getEquipment().getItemInMainHand(), mineReward, effectiveMiningLevel));
     Location dropLocation = brokenBlock.getLocation().clone();
 
     // Offsets the spawn location based on the player's location to stop items from becoming
