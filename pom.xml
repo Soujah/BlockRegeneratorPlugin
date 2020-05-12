@@ -53,6 +53,7 @@
       <groupId>com.sk89q.worldguard</groupId>
       <artifactId>worldguard-bukkit</artifactId>
       <version>7.0.1-SNAPSHOT</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>co.aikar</groupId>
@@ -108,15 +109,10 @@
           </relocations>
           <artifactSet>
             <includes>
-              <include>co.aikar:*</include>
-              <include>com.zaxxer:*</include>
+              <include>co.aikar:idb-core</include>
+              <include>com.zaxxer:HikariCP</include>
+              <include>org.jetbrains:annotations</include>
             </includes>
-            <excludes>
-              <exclude>io.pixeloutlaw:facecore:*</exclude>
-              <exclude>com.sk89q.worldguard:*</exclude>
-              <exclude>com.sk89q.worldedit:*</exclude>
-              <exclude>org.jetbrains:*</exclude>
-            </excludes>
           </artifactSet>
         </configuration>
         <executions>
@@ -135,22 +131,5 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.build.javaVersion>1.8</project.build.javaVersion>
   </properties>
-
-  <profiles>
-    <profile>
-      <id>java8-disable-doclint</id>
-      <activation>
-        <jdk>[1.8,</jdk>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 
 </project>
