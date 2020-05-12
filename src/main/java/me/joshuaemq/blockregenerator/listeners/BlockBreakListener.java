@@ -21,6 +21,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -67,7 +68,7 @@ public class BlockBreakListener implements Listener {
     event.setExpToDrop(0);
   }
 
-  @EventHandler(priority = EventPriority.LOWEST)
+  @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)
   public void onSpecialBlockBreak(BlockBreakEvent event) {
     if (event.getPlayer().getGameMode() == GameMode.CREATIVE) {
       return;
@@ -89,6 +90,7 @@ public class BlockBreakListener implements Listener {
     for (ProtectedRegion p : regions.getRegions()) {
       if (p.getPriority() > priority) {
         region = p;
+        priority = p.getPriority();
       }
     }
     if (region == null || !plugin.getBlockManager().containsRegion(region.getId())) {
@@ -108,6 +110,8 @@ public class BlockBreakListener implements Listener {
 
     event.setCancelled(true);
 
+    player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5f, 0.6f);
+
     int duration = plugin.getSettings().getInt("config.mine-fatigue-duration");
     int level = plugin.getSettings().getInt("config.mine-fatigue-intensity", 1) - 1;
 
@@ -120,12 +124,14 @@ public class BlockBreakListener implements Listener {
     double lootChanceMultiplier = 1 + (effectiveMiningLevel * bonusSuccess);
 
     if (random.nextDouble() * lootChanceMultiplier < 1D - regenBlock.getLootChance()) {
+      StrifeAdapter.getAdapter().addMiningExperience(player, 1, false);
       return;
     }
 
     String reward = RegenBlock.getRandomReward(regenBlock);
     MineReward mineReward = plugin.getMineRewardManager().getReward(reward);
     if (mineReward.getLevelRequirement() > miningLevel) {
+      StrifeAdapter.getAdapter().addMiningExperience(player, 1, false);
       return;
     }
 
