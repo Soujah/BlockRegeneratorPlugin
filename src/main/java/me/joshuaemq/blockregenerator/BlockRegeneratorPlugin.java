@@ -75,12 +75,18 @@ public class BlockRegeneratorPlugin extends FacePlugin {
 
     if (StringUtils.isBlank(username)) {
       getLogger().severe("Missing database username! Plugin will fail to work!");
+      Bukkit.getPluginManager().disablePlugin(this);
+      return;
     }
     if (StringUtils.isBlank(password)) {
       getLogger().severe("Missing database password! Plugin will fail to work!");
+      Bukkit.getPluginManager().disablePlugin(this);
+      return;
     }
     if (StringUtils.isBlank(database)) {
       getLogger().severe("Missing database field! Plugin will fail to work!");
+      Bukkit.getPluginManager().disablePlugin(this);
+      return;
     }
 
     DatabaseOptions options =
