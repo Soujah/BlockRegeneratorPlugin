@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>BlockRegenerator</artifactId>
-  <version>1.2.1-SNAPSHOT</version>
+  <version>1.2.2</version>
   <packaging>jar</packaging>
 
   <name>BlockRegenerator</name>
@@ -46,7 +46,7 @@
     <dependency>
       <groupId>io.pixeloutlaw</groupId>
       <artifactId>strife</artifactId>
-      <version>3.0.7</version>
+      <version>3.0.9</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

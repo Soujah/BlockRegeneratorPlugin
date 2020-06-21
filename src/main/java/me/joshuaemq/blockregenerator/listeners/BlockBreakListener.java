@@ -131,6 +131,9 @@ public class BlockBreakListener implements Listener {
     String reward = RegenBlock.getRandomReward(regenBlock);
     MineReward mineReward = plugin.getMineRewardManager().getReward(reward);
     if (mineReward.getLevelRequirement() > miningLevel) {
+      MessageUtils.sendMessage(player,
+          "&e&oHmm... You tried and failed to mine an item that required &f&oMining Lv" + mineReward
+              .getLevelRequirement() + "&e&o.");
       StrifeAdapter.getAdapter().addMiningExperience(player, 1, false);
       return;
     }

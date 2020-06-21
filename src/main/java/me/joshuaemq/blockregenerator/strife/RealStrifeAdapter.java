@@ -16,7 +16,7 @@ public class RealStrifeAdapter extends StrifeAdapter {
   public void addMiningExperience(Player player, double amount, boolean exact) {
     strifePlugin
         .getSkillExperienceManager()
-        .addExperience(player, land.face.strife.data.champion.LifeSkillType.MINING, amount, exact);
+        .addExperience(player, land.face.strife.data.champion.LifeSkillType.MINING, amount, exact, false);
   }
 
   @Override
